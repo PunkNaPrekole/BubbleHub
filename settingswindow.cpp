@@ -28,11 +28,17 @@ void SettingsWindow::saveSettings() {
 
     QSettings settings("PrekolTech", "BubbleHub");
 
+    QString oldUsername = settings.value("user/username", "").toString();
+    QString oldPassword = settings.value("user/password", "").toString();
+    if (username != oldUsername || password != oldPassword) {
+        // Если одно из значений изменилось, сбрасываем токен
+        settings.setValue("server/token", "");
+        settings.setValue("user/username", username);
+        settings.setValue("user/password", password);
+    }
+
     settings.setValue("server/serverAddress", serverAddress);
     settings.setValue("server/serverPort", serverPort);
-    settings.setValue("user/username", username);
-    settings.setValue("user/password", password);
-
     // Закрыть окно после сохранения
     this->accept();
 }

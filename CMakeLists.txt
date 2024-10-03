@@ -24,6 +24,12 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
         settingswindow.h settingswindow.cpp settingswindow.ui
+        NetworkManager.h
+        NetworkManager.cpp
+        Logger.h
+        Logger.cpp
+        DeviceControlFactory.h
+        DeviceControlFactory.cpp
 
     )
 # Define target properties for Android with Qt 6 as:

@@ -17,9 +17,9 @@
    <widget class="QPushButton" name="settingsButton">
     <property name="geometry">
      <rect>
-      <x>710</x>
+      <x>704</x>
       <y>10</y>
-      <width>75</width>
+      <width>81</width>
       <height>24</height>
      </rect>
     </property>
@@ -30,8 +30,8 @@
    <widget class="QLabel" name="stateLabel">
     <property name="geometry">
      <rect>
-      <x>320</x>
-      <y>210</y>
+      <x>570</x>
+      <y>40</y>
       <width>131</width>
       <height>16</height>
      </rect>
@@ -43,9 +43,9 @@
    <widget class="QPushButton" name="connectButton">
     <property name="geometry">
      <rect>
-      <x>350</x>
-      <y>250</y>
-      <width>75</width>
+      <x>704</x>
+      <y>40</y>
+      <width>81</width>
       <height>24</height>
      </rect>
     </property>
@@ -63,6 +63,32 @@
      </rect>
     </property>
     <layout class="QFormLayout" name="deviceLayout"/>
+   </widget>
+   <widget class="QPushButton" name="getDataButton">
+    <property name="geometry">
+     <rect>
+      <x>704</x>
+      <y>70</y>
+      <width>81</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Show charts</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="getDevicesButton">
+    <property name="geometry">
+     <rect>
+      <x>704</x>
+      <y>100</y>
+      <width>81</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Show devices</string>
+    </property>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
