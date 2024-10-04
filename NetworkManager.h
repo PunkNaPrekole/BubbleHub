@@ -20,6 +20,7 @@ signals:
     void requestFinished(const QJsonObject &response);
     void connectionStatusChanged(bool success);
     void devicesReceived(const QJsonArray &devices);
+    void dataReceived(const QJsonArray &data);
 
 private slots:
     void handleNetworkReply(QNetworkReply *reply);

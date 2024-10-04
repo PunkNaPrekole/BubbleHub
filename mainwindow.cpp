@@ -13,6 +13,8 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    this->setMinimumSize(800, 600);
+
     // Подключаем сигналы к слотам
     connect(ui->settingsButton, &QPushButton::clicked, this, &MainWindow::openSettings);
     connect(ui->connectButton, &QPushButton::clicked, this, [this]() {
@@ -30,6 +32,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(networkManager, &NetworkManager::requestFinished, this, &MainWindow::handleServerResponse);
     connect(networkManager, &NetworkManager::connectionStatusChanged, this, &MainWindow::updateConnectionStatus);
     connect(networkManager, &NetworkManager::devicesReceived, this, &MainWindow::onDevicesReceived);
+    connect(networkManager, &NetworkManager::dataReceived, this, &MainWindow::createCharts);
 
 }
 
@@ -111,3 +114,70 @@ void MainWindow::onDevicesReceived(const QJsonArray &devices) {
         }
     }
 }
+
+void MainWindow::createCharts(const QJsonArray &response) {
+    // Очищаем предыдущее содержимое виджета
+    QLayoutItem* item;
+    while ((item = ui->chartLayout->takeAt(0)) != nullptr) {
+        delete item->widget();
+        delete item;
+    }
+
+    // Проходим по каждому объекту в массиве
+    for (const QJsonValue &chartValue : response) {
+        QJsonObject chartObject = chartValue.toObject();
+        QString chartName = chartObject["name"].toString();
+
+        // Создаем график
+        QChart *chart = new QChart();
+        chart->setTitle(chartName);
+
+        // Создаем оси, которые будут общими для всех кривых
+        QValueAxis *axisX = new QValueAxis();
+        axisX->setLabelFormat("%i");
+        axisX->setTitleText("Data Points");
+        chart->addAxis(axisX, Qt::AlignBottom);
+
+        QValueAxis *axisY = new QValueAxis();
+        axisY->setLabelFormat("%f");
+        axisY->setTitleText("Values");
+        chart->addAxis(axisY, Qt::AlignLeft);
+
+        // Переменная для индекса по оси X
+        int index = 0;
+
+        // Проходим по каждому ключу, кроме "name", чтобы создать серию для каждой кривой
+        for (const QString &key : chartObject.keys()) {
+            if (key == "name") {
+                continue; // Пропускаем ключ "name"
+            }
+
+            // Получаем массив данных для этой кривой
+            QJsonArray dataArray = chartObject[key].toArray();
+
+            // Создаем серию для графика
+            QLineSeries *series = new QLineSeries();
+            series->setName(key);  // Устанавливаем имя для кривой (например, "indoor", "outdoor")
+
+            // Заполняем серию данными
+            int i = 0;
+            for (const QJsonValue &dataValue : dataArray) {
+                series->append(i++, dataValue.toDouble());
+            }
+
+            // Добавляем серию в график
+            chart->addSeries(series);
+            series->attachAxis(axisX); // Привязываем к общей оси X
+            series->attachAxis(axisY); // Привязываем к общей оси Y
+
+        }
+        axisY->setRange(0, 30);
+        // Создаем виджет для отображения графика
+        QChartView *chartView = new QChartView(chart);
+        chartView->setRenderHint(QPainter::Antialiasing);
+
+        // Добавляем график в компоновку
+        ui->chartLayout->addWidget(chartView);
+    }
+}
+

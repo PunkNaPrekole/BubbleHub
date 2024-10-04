@@ -5,8 +5,12 @@
 #include <QJsonArray>
 #include <QSettings>
 #include <QDir>
+#include <QtCharts/QChartView>
+#include <QtCharts/QLineSeries>
+#include <QtCharts/QValueAxis>
 #include "logger.h"
 #include "networkmanager.h"
+
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -27,6 +31,7 @@ private slots:
     void handleServerResponse(const QJsonObject &response);  // Обработка ответа от сервера
     void updateConnectionStatus(bool success);
     void onDevicesReceived(const QJsonArray &devices);
+    void createCharts(const QJsonArray &response);
 
 signals:
     void serverResponseReceived(const QJsonObject &response);  // Сигнал при получении ответа от сервера

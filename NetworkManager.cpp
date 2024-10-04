@@ -70,6 +70,9 @@ void NetworkManager::handleNetworkReply(QNetworkReply *reply) {
         } else if(jsonObject["message"] == "devices") {
             QJsonArray devicesArray = jsonObject["devices"].toArray();
             emit devicesReceived(devicesArray);
+        } else if(jsonObject["message"] == "data"){
+            QJsonArray data = jsonObject["charts"].toArray();
+            emit dataReceived(data);
         } else {
             emit requestFinished(jsonObject);
         }
