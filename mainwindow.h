@@ -8,6 +8,7 @@
 #include <QtCharts/QChartView>
 #include <QtCharts/QLineSeries>
 #include <QtCharts/QValueAxis>
+#include <QTimer>
 #include "logger.h"
 #include "networkmanager.h"
 
@@ -26,12 +27,15 @@ public:
 private slots:
     void openSettings();  // Открытие окна настроек
     void ServerAuth();  // Аутентификация на сервере
+    void GetTemperature();
     void sendMessageToServer(const QString &message);  // Отправка сообщения на сервер
-    void handleAuthSuccess(const QString &token);  // Обработка успешной аутентификации
-    void handleServerResponse(const QJsonObject &response);  // Обработка ответа от сервера
+    void handlerAuthSuccess(const QString &token);  // Обработка успешной аутентификации
+    void handlerServerResponse(const QJsonObject &response);  // Обработка ответа от сервера
     void updateConnectionStatus(bool success);
     void onDevicesReceived(const QJsonArray &devices);
     void createCharts(const QJsonArray &response);
+    void updateCharts(const double &temperature);
+    void updateTimerState(bool checked);
 
 signals:
     void serverResponseReceived(const QJsonObject &response);  // Сигнал при получении ответа от сервера
@@ -40,6 +44,7 @@ private:
     Ui::MainWindow *ui;
     Logger *logger;  // Экземпляр логгера
     NetworkManager *networkManager;  // Экземпляр нетворк манагера
+    QTimer *timer;
 };
 
 #endif // MAINWINDOW_H

@@ -13,13 +13,74 @@
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">/* Основные настройки фона и текста */
+QWidget {
+    background-color: #313131; /* фон для всего приложения */
+	font-family: &quot;GOST Common&quot;;
+    color: #eeeeee;            /* цвет текста */
+    font-size: 14px;           /* Стандартный размер текста */
+}
+
+/* Настройки для кнопок */
+QPushButton {
+    background-color: #5b5b85;     /* Основной цвет */
+    color: #eeeeee;                  /*текст */
+    border-radius: 10px;           /* Скругленные углы */
+    padding: 8px 16px;             /* Отступы */
+    border: 2px;     /* Бордер с ярким акцентом */
+	box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+QPushButton:hover {
+    background-color: #aaaaff;     /* Яркий розовый цвет при наведении */
+}
+
+QPushButton:pressed {
+    background-color: #aaaaff;     /* Красный цвет при нажатии */
+    border: 2px solid;     /* Оранжевая граница при нажатии */
+	box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.5);
+}
+/* Настройки для полей ввода текста */
+QLineEdit {
+    background-color: #272727;     /* Темный фон */
+    color: #eeeeee;                  /* Белый текст */
+    border: 1px solid #5b5b85;     /* Фиолетовая рамка */
+    padding: 6px;
+    border-radius: 6px;
+}
+
+QLineEdit:focus {
+    border: 1px solid #aaaaff;     /* Яркий розовый при фокусе */
+}
+/* Настройки для чекбоксов */
+QCheckBox {
+    color: #eeeeee;
+
+}
+
+QCheckBox::indicator {
+    width: 15px;
+    height: 15px;
+    border-radius: 3px;
+    background-color: #2C2C2C;
+    border: 2px solid #5b5b85;     /* Красная рамка */
+}
+
+QCheckBox::indicator:checked {
+    background-color: #D4ADFB;     /* Фиолетовый цвет при выборе */
+    border: 2px solid #aaaaff;     /* Яркая розовая рамка при выборе */
+}
+
+</string>
+  </property>
   <widget class="QPushButton" name="saveButton">
    <property name="geometry">
     <rect>
      <x>230</x>
-     <y>200</y>
+     <y>193</y>
      <width>75</width>
-     <height>24</height>
+     <height>31</height>
     </rect>
    </property>
    <property name="text">
@@ -31,8 +92,8 @@
     <rect>
      <x>10</x>
      <y>10</y>
-     <width>81</width>
-     <height>16</height>
+     <width>101</width>
+     <height>21</height>
     </rect>
    </property>
    <property name="text">
@@ -45,7 +106,7 @@
      <x>60</x>
      <y>40</y>
      <width>113</width>
-     <height>22</height>
+     <height>31</height>
     </rect>
    </property>
   </widget>
@@ -57,6 +118,12 @@
      <width>49</width>
      <height>16</height>
     </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>GOST Common</family>
+     <pointsize>-1</pointsize>
+    </font>
    </property>
    <property name="text">
     <string>address</string>
@@ -71,6 +138,12 @@
      <height>16</height>
     </rect>
    </property>
+   <property name="font">
+    <font>
+     <family>GOST Common</family>
+     <pointsize>-1</pointsize>
+    </font>
+   </property>
    <property name="text">
     <string>port</string>
    </property>
@@ -81,7 +154,7 @@
      <x>210</x>
      <y>40</y>
      <width>51</width>
-     <height>22</height>
+     <height>31</height>
     </rect>
    </property>
   </widget>
@@ -89,8 +162,8 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>70</y>
-     <width>81</width>
+     <y>80</y>
+     <width>91</width>
      <height>16</height>
     </rect>
    </property>
@@ -102,7 +175,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>100</y>
+     <y>120</y>
      <width>61</width>
      <height>16</height>
     </rect>
@@ -115,9 +188,9 @@
    <property name="geometry">
     <rect>
      <x>70</x>
-     <y>100</y>
+     <y>110</y>
      <width>113</width>
-     <height>22</height>
+     <height>31</height>
     </rect>
    </property>
   </widget>
@@ -125,7 +198,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>130</y>
+     <y>150</y>
      <width>61</width>
      <height>16</height>
     </rect>
@@ -138,9 +211,9 @@
    <property name="geometry">
     <rect>
      <x>70</x>
-     <y>130</y>
+     <y>150</y>
      <width>113</width>
-     <height>22</height>
+     <height>31</height>
     </rect>
    </property>
    <property name="echoMode">
@@ -151,13 +224,32 @@
    <property name="geometry">
     <rect>
      <x>190</x>
-     <y>130</y>
-     <width>31</width>
-     <height>24</height>
+     <y>150</y>
+     <width>51</width>
+     <height>31</height>
     </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>GOST Common</family>
+     <pointsize>-1</pointsize>
+    </font>
    </property>
    <property name="text">
     <string>👁</string>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="pollCheckBox">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>200</y>
+     <width>111</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>polling server</string>
    </property>
   </widget>
  </widget>

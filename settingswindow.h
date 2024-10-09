@@ -15,6 +15,9 @@ public:
     explicit SettingsWindow(QWidget *parent = nullptr);
     ~SettingsWindow();
 
+signals:
+    void pollingServerState(bool &state);
+
 private:
     Ui::SettingsWindow *ui;
     void saveSettings();

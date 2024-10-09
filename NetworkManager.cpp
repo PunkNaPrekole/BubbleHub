@@ -26,7 +26,7 @@ void NetworkManager::authenticate(const QString &username, const QString &passwo
 
     QNetworkReply *reply = manager->post(request, data);
     connect(reply, &QNetworkReply::finished, this, [this, reply]() {
-        handleNetworkReply(reply);
+        handlerNetworkReply(reply);
     });
 
 }
@@ -50,12 +50,12 @@ void NetworkManager::sendRequest(const QString &message) {
 
     QNetworkReply *reply = manager->post(request, data);
     connect(reply, &QNetworkReply::finished, this, [this, reply]() {
-        handleNetworkReply(reply);
+        handlerNetworkReply(reply);
     });
 
 }
 
-void NetworkManager::handleNetworkReply(QNetworkReply *reply) {
+void NetworkManager::handlerNetworkReply(QNetworkReply *reply) {
     if (reply->error() == QNetworkReply::NoError) {
         QByteArray response = reply->readAll();
         QJsonDocument jsonResponse = QJsonDocument::fromJson(response);
@@ -64,15 +64,17 @@ void NetworkManager::handleNetworkReply(QNetworkReply *reply) {
         if (jsonObject["message"] == "auth ok") {
             emit authenticationSuccess(jsonObject["token"].toString());
         } else if (jsonObject["message"] == "validate token") {
-            // Проверка на успешность валидации токена
             bool success = jsonObject["success"].toBool();
-            emit connectionStatusChanged(success);  // Отправляем сигнал с результатом
+            emit connectionStatusChanged(success);
         } else if(jsonObject["message"] == "devices") {
             QJsonArray devicesArray = jsonObject["devices"].toArray();
             emit devicesReceived(devicesArray);
         } else if(jsonObject["message"] == "data"){
             QJsonArray data = jsonObject["charts"].toArray();
             emit dataReceived(data);
+        } else if (jsonObject["message"] == "temperature_update") {
+            double temperature = jsonObject["temperature"].toDouble();
+            emit temperatureReceived(temperature);
         } else {
             emit requestFinished(jsonObject);
         }

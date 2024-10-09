@@ -21,9 +21,10 @@ signals:
     void connectionStatusChanged(bool success);
     void devicesReceived(const QJsonArray &devices);
     void dataReceived(const QJsonArray &data);
+    void temperatureReceived(const double &temperature);
 
 private slots:
-    void handleNetworkReply(QNetworkReply *reply);
+    void handlerNetworkReply(QNetworkReply *reply);
 
 private:
     QNetworkAccessManager *manager;

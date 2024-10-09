@@ -6,100 +6,280 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>796</width>
+    <height>590</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">/*переменные цветов(на самом деле классы)*/
+.color-main {
+    background-color: #272727; 
+}
+.color-light {
+    background-color: #eeeeee; 
+}
+.color-second {
+    background-color: #313131; 
+}
+.color-theme {
+    background-color: #5b5b85; 
+}
+.color-lavender {
+    background-color: #aaaaff; 
+}
+/* Основные настройки фона и текста */
+QWidget {
+    background-color: #272727; /* фон для всего приложения */
+	font-family: &quot;GOST Common&quot;;
+    color: #eeeeee;            /* цвет текста */
+    font-size: 14px;           /* Стандартный размер текста */
+}
+
+/* Настройки для кнопок */
+QPushButton {
+    background-color: #5b5b85;     /* Основной цвет */
+    color: white;                  /*текст */
+    border-radius: 10px;           /* Скругленные углы */
+    padding: 8px 16px;             /* Отступы */
+    border: 2px;     /* Бордер с ярким акцентом */
+	box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+QPushButton:hover {
+    background-color: #aaaaff;     /* Яркий розовый цвет при наведении */
+}
+
+QPushButton:pressed {
+    background-color: #aaaaff;     /* Красный цвет при нажатии */
+    border: 2px solid;     /* Оранжевая граница при нажатии */
+	box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+/* Настройки для слайдеров */
+QSlider::groove:horizontal {
+    background: #eeeeee;           /* трек */
+    height: 6px;
+    border-radius: 3px;
+}
+
+QSlider::handle:horizontal {
+    background: #aaaaff;           /* ручка */
+    border: 2px solid #5b5b85;     /* граница */
+    width: 20px;
+    height: 20px;
+    margin: -8px 0;
+    border-radius: 10px;
+}
+
+QSlider::handle:horizontal:hover {
+    background: #5b5b85;           /* цвет при наведении */
+}
+
+/* Настройки для полей ввода текста */
+QLineEdit {
+    background-color: #2C2C2C;     /* Темный фон */
+    color: #eeeeee;                  /* Белый текст */
+    border: 1px solid #5b5b85;     /* Фиолетовая рамка */
+    padding: 6px;
+    border-radius: 6px;
+}
+
+QLineEdit:focus {
+    border: 1px solid #D900FF;     /* Яркий розовый при фокусе */
+}
+
+/* Настройки для выпадающих списков */
+QComboBox {
+    background-color: #2C2C2C;     /* Темный фон */
+    color: white;                  /* Белый текст */
+    border: 1px solid #FF1F00;     /* Красная рамка */
+    padding: 6px;
+    border-radius: 6px;
+}
+
+QComboBox QAbstractItemView {
+    background-color: #2C2C2C;     /* Темный фон выпадающего списка */
+    color: white;                  /* Белый текст */
+    selection-background-color: #A63BFF; /* Фиолетовый при выборе */
+}
+
+/* Настройки для чекбоксов */
+QCheckBox {
+    color: white;
+}
+
+QCheckBox::indicator {
+    width: 18px;
+    height: 18px;
+    border-radius: 3px;
+    background-color: #2C2C2C;
+    border: 2px solid #FF1F00;     /* Красная рамка */
+}
+
+QCheckBox::indicator:checked {
+    background-color: #A63BFF;     /* Фиолетовый цвет при выборе */
+    border: 2px solid #D900FF;     /* Яркая розовая рамка при выборе */
+}
+
+/* Настройки для радиокнопок */
+QRadioButton {
+    color: white;
+}
+
+QRadioButton::indicator {
+    width: 16px;
+    height: 16px;
+    border-radius: 8px;
+    background-color: #2C2C2C;
+    border: 2px solid #FF1F00;     /* Красная рамка */
+}
+
+QRadioButton::indicator:checked {
+    background-color: #A63BFF;     /* Фиолетовый цвет при выборе */
+    border: 2px solid #D900FF;     /* Розовая рамка при выборе */
+}
+QTabWidget {
+    background-color: #2D2D30; /* Цвет фона всего виджета */
+    color: #eeeeee; /* Цвет текста */
+	border: none;
+}
+
+QTabBar {
+    background: #313131; /* Цвет фона для панели вкладок */
+    border-bottom: 1px solid #313131; /* Цвет границы панели вкладок */
+}
+
+QTabBar::tab {
+    background: #5b5b85; /* Цвет фона вкладок */
+    color: #eeeeee; /* Цвет текста вкладки */
+    padding: 3px; /* Отступы внутри вкладки */
+    margin: 0 2px; /* Отступы между вкладками */
+    border: 1px solid #313131; /* Цвет границы вкладок */
+    border-radius: 5px; /* Скругление углов вкладок */
+}
+
+QTabBar::tab:selected {
+    background: #aaaaff; /* Цвет фона выбранной вкладки */
+    color: #eeeeee; /* Цвет текста выбранной вкладки */
+    border-bottom: none; /* Убираем границу внизу для выбранной вкладки */
+    border-top-left-radius: 5px; /* Скругление верхнего левого угла для выбранной вкладки */
+    border-top-right-radius: 5px; /* Скругление верхнего правого угла для выбранной вкладки */
+}
+
+QTabBar::tab:hover {
+    background: #aaaaff; /* Цвет фона при наведении на вкладку */
+}
+</string>
+  </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QPushButton" name="settingsButton">
+   <widget class="QTabWidget" name="tabWidget">
     <property name="geometry">
      <rect>
-      <x>704</x>
-      <y>10</y>
-      <width>81</width>
-      <height>24</height>
+      <x>10</x>
+      <y>0</y>
+      <width>781</width>
+      <height>541</height>
      </rect>
     </property>
-    <property name="text">
-     <string>Settings</string>
+    <property name="currentIndex">
+     <number>0</number>
     </property>
-   </widget>
-   <widget class="QLabel" name="stateLabel">
-    <property name="geometry">
-     <rect>
-      <x>570</x>
-      <y>40</y>
-      <width>131</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Disconnected&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="connectButton">
-    <property name="geometry">
-     <rect>
-      <x>704</x>
-      <y>40</y>
-      <width>81</width>
-      <height>24</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Connect</string>
-    </property>
-   </widget>
-   <widget class="QWidget" name="formLayoutWidget">
-    <property name="geometry">
-     <rect>
-      <x>19</x>
-      <y>20</y>
-      <width>281</width>
-      <height>511</height>
-     </rect>
-    </property>
-    <layout class="QFormLayout" name="deviceLayout"/>
-   </widget>
-   <widget class="QPushButton" name="getDataButton">
-    <property name="geometry">
-     <rect>
-      <x>704</x>
-      <y>70</y>
-      <width>81</width>
-      <height>24</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Show charts</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="getDevicesButton">
-    <property name="geometry">
-     <rect>
-      <x>704</x>
-      <y>100</y>
-      <width>81</width>
-      <height>24</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Show devices</string>
-    </property>
-   </widget>
-   <widget class="QWidget" name="verticalLayoutWidget">
-    <property name="geometry">
-     <rect>
-      <x>299</x>
-      <y>150</y>
-      <width>481</width>
-      <height>381</height>
-     </rect>
-    </property>
-    <layout class="QVBoxLayout" name="chartLayout"/>
+    <widget class="QWidget" name="mainMenu">
+     <attribute name="title">
+      <string>menu</string>
+     </attribute>
+     <widget class="QWidget" name="gridLayoutWidget">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>201</width>
+        <height>202</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="ButtonsGridLayout">
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <item row="3" column="1">
+        <widget class="QPushButton" name="getDevicesButton">
+         <property name="text">
+          <string>Show devices</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QPushButton" name="connectButton">
+         <property name="text">
+          <string>Connect</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QPushButton" name="settingsButton">
+         <property name="styleSheet">
+          <string notr="true"/>
+         </property>
+         <property name="text">
+          <string>Settings</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QPushButton" name="getDataButton">
+         <property name="text">
+          <string>Show charts</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="stateLabel">
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Disconnected&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="chartMenu">
+     <attribute name="title">
+      <string>charts</string>
+     </attribute>
+     <widget class="QWidget" name="verticalLayoutWidget">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>781</width>
+        <height>521</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="chartLayout"/>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="controlMenu">
+     <attribute name="title">
+      <string>devices</string>
+     </attribute>
+     <widget class="QWidget" name="formLayoutWidget">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>781</width>
+        <height>551</height>
+       </rect>
+      </property>
+      <layout class="QFormLayout" name="deviceLayout"/>
+     </widget>
+    </widget>
    </widget>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -108,8 +288,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
-     <height>22</height>
+     <width>796</width>
+     <height>23</height>
     </rect>
    </property>
   </widget>

@@ -25,20 +25,26 @@ void SettingsWindow::saveSettings() {
     QString serverPort = ui->serverPortLineEdit->text();
     QString username = ui->usernameEdit->text();
     QString password = ui->passwdEdit->text();
+    bool pollingState = ui->pollCheckBox->isChecked();
 
     QSettings settings("PrekolTech", "BubbleHub");
 
     QString oldUsername = settings.value("user/username", "").toString();
     QString oldPassword = settings.value("user/password", "").toString();
+    bool pollingStateNow = settings.value("system/polling").toBool();
     if (username != oldUsername || password != oldPassword) {
         // Если одно из значений изменилось, сбрасываем токен
         settings.setValue("server/token", "");
         settings.setValue("user/username", username);
         settings.setValue("user/password", password);
     }
+    if (pollingState != pollingStateNow){
+        emit pollingServerState(pollingState);
+    }
 
     settings.setValue("server/serverAddress", serverAddress);
     settings.setValue("server/serverPort", serverPort);
+    settings.setValue("system/polling", pollingState);
     // Закрыть окно после сохранения
     this->accept();
 }
@@ -52,11 +58,13 @@ void SettingsWindow::loadSettings() {
     QString serverPort = settings.value("server/serverPort", "").toString();
     QString username = settings.value("user/username", "").toString();
     QString password = settings.value("user/password", "").toString();
+    bool pollerState = settings.value("system/polling", true).toBool();
 
     ui->serverAddressLineEdit->setText(serverAddress);
     ui->serverPortLineEdit->setText(serverPort);
     ui->usernameEdit->setText(username);
     ui->passwdEdit->setText(password);
+    ui->pollCheckBox->setChecked(pollerState);
 }
 
 void SettingsWindow::togglePasswordVisibility(){
