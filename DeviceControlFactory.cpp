@@ -1,25 +1,17 @@
 #include "devicecontrolfactory.h"
-#include <QPushButton>
-#include <QSlider>
-#include <QLabel>
 
-QWidget* DeviceControlFactory::createControl(const QJsonObject &device, QWidget *parent) {
-    QString deviceType = device["type"].toString();
-    QString deviceName = device["name"].toString();
+DeviceControlFactory::DeviceControlFactory(QObject *parent) : QObject(parent)
+{
+}
 
-    if (deviceType == "switch") {
-        QPushButton *button = new QPushButton("Toggle", parent);
-        QObject::connect(button, &QPushButton::clicked, [deviceName]() {
-            qDebug() << "Switch toggled for device:" << deviceName;
-        });
-        return button;
-    } else if (deviceType == "slider") {
-        QSlider *slider = new QSlider(Qt::Horizontal, parent);
-        slider->setRange(0, 100);
-        QObject::connect(slider, &QSlider::valueChanged, [deviceName](int value) {
-            qDebug() << "Slider value for device" << deviceName << ":" << value;
-        });
-        return slider;
+DeviceControlBlock* DeviceControlFactory::createControlBlock(const QString &deviceType, const QString &deviceName, int deviceId)
+{
+    // В зависимости от типа устройства создаем соответствующий блок управления
+    if (deviceType == "light") {
+        return new DeviceControlBlock(deviceName, deviceId); // Например, блок для управления светом
+    } else if (deviceType == "thermostat") {
+        return new DeviceControlBlock(deviceName, deviceId); // Блок для термостата
+    } else {
+        return new DeviceControlBlock(deviceName, deviceId); // Блок по умолчанию
     }
-    return nullptr;  // Если тип устройства не распознан
 }

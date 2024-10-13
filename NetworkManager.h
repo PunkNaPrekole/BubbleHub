@@ -22,6 +22,8 @@ signals:
     void devicesReceived(const QJsonArray &devices);
     void dataReceived(const QJsonArray &data);
     void temperatureReceived(const double &temperature);
+    void systemStateReceived(const QJsonObject &state);
+    void devicesStateReceived(QJsonArray &devicesStatusList);
 
 private slots:
     void handlerNetworkReply(QNetworkReply *reply);

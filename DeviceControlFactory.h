@@ -1,12 +1,18 @@
 #ifndef DEVICECONTROLFACTORY_H
 #define DEVICECONTROLFACTORY_H
 
-#include <QWidget>
-#include <QJsonObject>
+#include <QObject>
+#include "devicecontrolblock.h"
 
-class DeviceControlFactory {
+class DeviceControlFactory : public QObject
+{
+    Q_OBJECT
+
 public:
-    static QWidget* createControl(const QJsonObject &device, QWidget *parent = nullptr);
+    explicit DeviceControlFactory(QObject *parent = nullptr);
+
+    // Метод для создания блока управления для устройства
+    DeviceControlBlock* createControlBlock(const QString &deviceType, const QString &deviceName, int deviceId);
 };
 
 #endif // DEVICECONTROLFACTORY_H

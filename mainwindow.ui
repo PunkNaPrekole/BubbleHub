@@ -6,34 +6,19 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>796</width>
-    <height>590</height>
+    <width>800</width>
+    <height>600</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">/*переменные цветов(на самом деле классы)*/
-.color-main {
-    background-color: #272727; 
-}
-.color-light {
-    background-color: #eeeeee; 
-}
-.color-second {
-    background-color: #313131; 
-}
-.color-theme {
-    background-color: #5b5b85; 
-}
-.color-lavender {
-    background-color: #aaaaff; 
-}
-/* Основные настройки фона и текста */
+   <string notr="true">/* Основные настройки фона и текста */
 QWidget {
     background-color: #272727; /* фон для всего приложения */
 	font-family: &quot;GOST Common&quot;;
+	text-align: center;
     color: #eeeeee;            /* цвет текста */
     font-size: 14px;           /* Стандартный размер текста */
 }
@@ -149,7 +134,7 @@ QTabWidget {
 
 QTabBar {
     background: #313131; /* Цвет фона для панели вкладок */
-    border-bottom: 1px solid #313131; /* Цвет границы панели вкладок */
+    border: none; /* Цвет границы панели вкладок */
 }
 
 QTabBar::tab {
@@ -167,6 +152,8 @@ QTabBar::tab:selected {
     border-bottom: none; /* Убираем границу внизу для выбранной вкладки */
     border-top-left-radius: 5px; /* Скругление верхнего левого угла для выбранной вкладки */
     border-top-right-radius: 5px; /* Скругление верхнего правого угла для выбранной вкладки */
+    border-bottom-left-radius: 0px; /* Убираем скругление нижнего левого угла */
+    border-bottom-right-radius: 0px; /* Убираем скругление нижнего правого угла */
 }
 
 QTabBar::tab:hover {
@@ -180,12 +167,15 @@ QTabBar::tab:hover {
      <rect>
       <x>10</x>
       <y>0</y>
-      <width>781</width>
-      <height>541</height>
+      <width>801</width>
+      <height>571</height>
      </rect>
     </property>
+    <property name="styleSheet">
+     <string notr="true"/>
+    </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>2</number>
     </property>
     <widget class="QWidget" name="mainMenu">
      <attribute name="title">
@@ -196,8 +186,8 @@ QTabBar::tab:hover {
        <rect>
         <x>10</x>
         <y>10</y>
-        <width>201</width>
-        <height>202</height>
+        <width>112</width>
+        <height>161</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="ButtonsGridLayout">
@@ -207,21 +197,28 @@ QTabBar::tab:hover {
        <property name="spacing">
         <number>0</number>
        </property>
-       <item row="3" column="1">
+       <item row="3" column="0">
         <widget class="QPushButton" name="getDevicesButton">
          <property name="text">
           <string>Show devices</string>
          </property>
         </widget>
        </item>
-       <item row="1" column="1">
+       <item row="2" column="0">
+        <widget class="QPushButton" name="getDataButton">
+         <property name="text">
+          <string>Show charts</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
         <widget class="QPushButton" name="connectButton">
          <property name="text">
           <string>Connect</string>
          </property>
         </widget>
        </item>
-       <item row="0" column="1">
+       <item row="0" column="0">
         <widget class="QPushButton" name="settingsButton">
          <property name="styleSheet">
           <string notr="true"/>
@@ -231,17 +228,215 @@ QTabBar::tab:hover {
          </property>
         </widget>
        </item>
+      </layout>
+     </widget>
+     <widget class="QLabel" name="stateLabel">
+      <property name="geometry">
+       <rect>
+        <x>638</x>
+        <y>0</y>
+        <width>131</width>
+        <height>33</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Disconnected&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="rebootButton">
+      <property name="geometry">
+       <rect>
+        <x>690</x>
+        <y>40</y>
+        <width>75</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QPushButton {
+    background-color: #e0301e;     /* Основной цвет */
+    color: #eeeeee;                  /*текст */
+    border-radius: 10px;           /* Скругленные углы */
+    padding: 4px 8px;             /* Отступы */
+    border: 2px;     /* Бордер с ярким акцентом */
+}
+
+QPushButton:hover {
+    background-color: #eb8c00;     /* Яркий розовый цвет при наведении */
+}
+
+QPushButton:pressed {
+    background-color: #a32020;     /* Красный цвет при нажатии */
+    border: 2px solid;     /* Оранжевая граница при нажатии */
+}</string>
+      </property>
+      <property name="text">
+       <string>Reboot</string>
+      </property>
+     </widget>
+     <widget class="QWidget" name="gridLayoutWidget_2">
+      <property name="geometry">
+       <rect>
+        <x>190</x>
+        <y>30</y>
+        <width>421</width>
+        <height>101</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="systemControl">
        <item row="2" column="1">
-        <widget class="QPushButton" name="getDataButton">
+        <widget class="QPushButton" name="dbRestartBtn">
+         <property name="styleSheet">
+          <string notr="true">QPushButton {
+    background-color: #ff7400;     /* Основной цвет */
+    color: #eeeeee;                  /*текст */
+    border-radius: 10px;           /* Скругленные углы */
+    padding: 8px 16px;             /* Отступы */
+    border: 2px;     /* Бордер с ярким акцентом */
+}
+
+QPushButton:hover {
+    background-color: #ff9a00;     /* Яркий розовый цвет при наведении */
+}
+
+QPushButton:pressed {
+    background-color: #ff4d00;     /* Красный цвет при нажатии */
+    border: 2px solid;     /* Оранжевая граница при нажатии */
+}</string>
+         </property>
          <property name="text">
-          <string>Show charts</string>
+          <string>restart</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QPushButton" name="brokerRestartBtn">
+         <property name="styleSheet">
+          <string notr="true">QPushButton {
+    background-color: #ff7400;     /* Основной цвет */
+    color: #eeeeee;                  /*текст */
+    border-radius: 10px;           /* Скругленные углы */
+    padding: 8px 16px;             /* Отступы */
+    border: 2px;     /* Бордер с ярким акцентом */
+}
+
+QPushButton:hover {
+    background-color: #ff9a00;     /* Яркий розовый цвет при наведении */
+}
+
+QPushButton:pressed {
+    background-color: #ff4d00;     /* Красный цвет при нажатии */
+    border: 2px solid;     /* Оранжевая граница при нажатии */
+}</string>
+         </property>
+         <property name="text">
+          <string>restart</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="3">
+        <widget class="QLabel" name="noneLabel">
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;TextLabel&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
         </widget>
        </item>
        <item row="1" column="0">
-        <widget class="QLabel" name="stateLabel">
+        <widget class="QLabel" name="mqttBrokerStateLabel">
          <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Disconnected&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;active&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2">
+        <widget class="QPushButton" name="rebootAllDevicesBtn">
+         <property name="styleSheet">
+          <string notr="true">QPushButton {
+    background-color: #ff7400;     /* Основной цвет */
+    color: #eeeeee;                  /*текст */
+    border-radius: 10px;           /* Скругленные углы */
+    padding: 8px 16px;             /* Отступы */
+    border: 2px;     /* Бордер с ярким акцентом */
+}
+
+QPushButton:hover {
+    background-color: #ff9a00;     /* Яркий розовый цвет при наведении */
+}
+
+QPushButton:pressed {
+    background-color: #ff4d00;     /* Красный цвет при нажатии */
+    border: 2px solid;     /* Оранжевая граница при нажатии */
+}</string>
+         </property>
+         <property name="text">
+          <string>restart all</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="3">
+        <widget class="QPushButton" name="pushButton_4">
+         <property name="styleSheet">
+          <string notr="true">QPushButton {
+    background-color: #ff7400;     /* Основной цвет */
+    color: #eeeeee;                  /*текст */
+    border-radius: 10px;           /* Скругленные углы */
+    padding: 8px 16px;             /* Отступы */
+    border: 2px;     /* Бордер с ярким акцентом */
+}
+
+QPushButton:hover {
+    background-color: #ff9a00;     /* Яркий розовый цвет при наведении */
+}
+
+QPushButton:pressed {
+    background-color: #ff4d00;     /* Красный цвет при нажатии */
+    border: 2px solid;     /* Оранжевая граница при нажатии */
+}</string>
+         </property>
+         <property name="text">
+          <string>restart</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="QLabel" name="devicesCountLabel">
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&amp;quot;count&amp;quot;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLabel" name="dbStateLabel">
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;active&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_5">
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;mqtt broker&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLabel" name="label_6">
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;database&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="2">
+        <widget class="QLabel" name="label_7">
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;devices&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="3">
+        <widget class="QLabel" name="label_8">
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;TextLabel&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
         </widget>
        </item>
@@ -268,16 +463,16 @@ QTabBar::tab:hover {
      <attribute name="title">
       <string>devices</string>
      </attribute>
-     <widget class="QWidget" name="formLayoutWidget">
+     <widget class="QWidget" name="gridLayoutWidget_3">
       <property name="geometry">
        <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>781</width>
-        <height>551</height>
+        <x>-1</x>
+        <y>-1</y>
+        <width>791</width>
+        <height>521</height>
        </rect>
       </property>
-      <layout class="QFormLayout" name="deviceLayout"/>
+      <layout class="QGridLayout" name="devicesLayout"/>
      </widget>
     </widget>
    </widget>
@@ -288,7 +483,7 @@ QTabBar::tab:hover {
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>796</width>
+     <width>800</width>
      <height>23</height>
     </rect>
    </property>

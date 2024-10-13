@@ -9,13 +9,14 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
     , logger(new Logger(QDir::currentPath() + "/event_log.txt"))  // инициализируем логгер и \/
-    , networkManager(new NetworkManager(this))                    //                    нетворк менеджер
+    , networkManager(new NetworkManager(this))
+    , deviceControlFactory(new DeviceControlFactory(this))    //                    нетворк менеджер
 {
     ui->setupUi(this);
 
     this->setMinimumSize(800, 600);
     timer = new QTimer(this);
-    connect(timer, &QTimer::timeout, this, &MainWindow::GetTemperature);
+    connect(timer, &QTimer::timeout, this, &MainWindow::GetSystemState);
     QSettings settings("PrekolTech", "BubbleHub");
     bool checkBoxState = settings.value("system/polling", false).toBool();
     if (checkBoxState) {
@@ -35,6 +36,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->getDevicesButton, &QPushButton::clicked, this, [this]() {
         sendMessageToServer("get devices");
     });
+    connect(ui->rebootButton, &QPushButton::clicked, this, [this]() {
+        sendMessageToServer("reboot system");
+    });
 
     // Подключаем сигналы от нетворк манагера)
     connect(networkManager, &NetworkManager::authenticationSuccess, this, &MainWindow::handlerAuthSuccess);
@@ -43,6 +47,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(networkManager, &NetworkManager::devicesReceived, this, &MainWindow::onDevicesReceived);
     connect(networkManager, &NetworkManager::dataReceived, this, &MainWindow::createCharts);
     connect(networkManager, &NetworkManager::temperatureReceived, this, &MainWindow::updateCharts);
+    connect(networkManager, &NetworkManager::systemStateReceived, this, &MainWindow::updateSystemState);
+    connect(networkManager, &NetworkManager::devicesStateReceived, this, &MainWindow::onDeviceStatusReceived);
 
 
 }
@@ -52,6 +58,7 @@ MainWindow::~MainWindow() {
     delete logger;
     delete networkManager;
 }
+
 void MainWindow::updateTimerState(bool checked) {
     // функция включения/выключения пуллера
     if (checked) {
@@ -75,6 +82,22 @@ void MainWindow::openSettings() {
         }
     }
 }
+void MainWindow::updateSystemState(const QJsonObject &state){
+    QString brokerState = state.value("broker state").toString();
+    QString dbState = state.value("db state").toString();
+    QString devices = state.value("devices").toString();
+    QString none = state.value("none").toString();
+
+    ui->mqttBrokerStateLabel->setText(brokerState);
+    ui->dbStateLabel->setText(dbState);
+    ui->devicesCountLabel->setText(devices);
+    ui->noneLabel->setText(none);
+
+    ui->mqttBrokerStateLabel->setAlignment(Qt::AlignCenter);
+    ui->dbStateLabel->setAlignment(Qt::AlignCenter);
+    ui->devicesCountLabel->setAlignment(Qt::AlignCenter);
+    ui->noneLabel->setAlignment(Qt::AlignCenter);
+}
 
 void MainWindow::ServerAuth() {
     // функция отправляющая запрос для получения auth токена
@@ -84,9 +107,9 @@ void MainWindow::ServerAuth() {
     networkManager->authenticate(username, passwd);
 }
 
-void MainWindow::GetTemperature(){
+void MainWindow::GetSystemState(){
     // функция запроса данных по температуре
-    sendMessageToServer("get temperature");
+    sendMessageToServer("get_system_state");
 }
 
 void MainWindow::updateConnectionStatus(bool success) {
@@ -120,25 +143,55 @@ void MainWindow::handlerAuthSuccess(const QString &token) {
 void MainWindow::handlerServerResponse(const QJsonObject &response) {
     // хэндлер ответа от сервера?
     qDebug() << "Server response:" << response;
-    emit serverResponseReceived(response);  // пикаем сигнал
 }
 
 void MainWindow::onDevicesReceived(const QJsonArray &devices) {
-    // очищаем deviceLayout
-    while (QLayoutItem* item = ui->deviceLayout->takeAt(0)) {
-        delete item->widget();
-        delete item;
-    }
-
     // Создание новых элементов управления для устройств
-    for (const QJsonValue &value : devices) {
-        QJsonObject device = value.toObject();
-        QString deviceName = device["name"].toString();
-        QLabel *label = new QLabel(deviceName, this);
-        ui->deviceLayout->addWidget(label);
-        QWidget *control = DeviceControlFactory::createControl(device, this);
-        if (control) {
-            ui->deviceLayout->addWidget(control);
+    int row = 0, col = 0;  // Индексы для размещения в сетке
+    const int maxColumns = 4;  // Количество столбцов
+
+    for (const QJsonValue &deviceVal : devices) {
+        QJsonObject deviceObj = deviceVal.toObject();
+        int deviceId = deviceObj["id"].toInt();
+        QString deviceType = deviceObj["type"].toString();
+        QString deviceName = deviceObj["name"].toString();
+
+        // Создаем блок управления для каждого устройства
+        DeviceControlBlock *controlBlock = deviceControlFactory->createControlBlock(deviceType, deviceName, deviceId);
+
+        // Устанавливаем фиксированный размер
+        controlBlock->setFixedSize(150, 100);  // Задаем размеры блоков управления
+
+        // Добавляем блок управления в сетку
+        ui->devicesLayout->addWidget(controlBlock, row, col);
+        deviceBlocks[deviceId] = controlBlock;
+
+        // Обновляем индексы для следующего устройства
+        col++;
+        if (col >= maxColumns) {
+            col = 0;
+            row++;
+        }
+    }
+}
+
+void MainWindow::onDeviceStatusReceived(const QJsonArray &devicesStatusList)
+{
+    for (const QJsonValue &value : devicesStatusList) {
+        QJsonObject deviceStatus = value.toObject();
+
+        int deviceId = deviceStatus["id"].toInt();
+        // Проверяем, существует ли блок управления для этого устройства
+        if (deviceBlocks.contains(deviceId)) {
+            DeviceControlBlock *controlBlock = deviceBlocks[deviceId];
+            for (const QString &key : deviceStatus.keys()) {
+                if (key != "id") {
+                    int value = deviceStatus[key].toInt();
+                    controlBlock->updateSliderForRole(key, value);
+                }
+            }
+        } else {
+            deviceControlFactory->createControlBlock(deviceStatus["type"].toString(), deviceStatus["name"].toString(), deviceStatus["id"].toInt());
         }
     }
 }

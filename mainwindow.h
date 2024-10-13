@@ -11,6 +11,7 @@
 #include <QTimer>
 #include "logger.h"
 #include "networkmanager.h"
+#include "devicecontrolfactory.h"
 
 
 QT_BEGIN_NAMESPACE
@@ -27,7 +28,7 @@ public:
 private slots:
     void openSettings();  // Открытие окна настроек
     void ServerAuth();  // Аутентификация на сервере
-    void GetTemperature();
+    void GetSystemState();
     void sendMessageToServer(const QString &message);  // Отправка сообщения на сервер
     void handlerAuthSuccess(const QString &token);  // Обработка успешной аутентификации
     void handlerServerResponse(const QJsonObject &response);  // Обработка ответа от сервера
@@ -36,15 +37,21 @@ private slots:
     void createCharts(const QJsonArray &response);
     void updateCharts(const double &temperature);
     void updateTimerState(bool checked);
+    void updateSystemState(const QJsonObject &state);
+    void onDeviceStatusReceived(const QJsonArray &devicesStatusList);
 
 signals:
-    void serverResponseReceived(const QJsonObject &response);  // Сигнал при получении ответа от сервера
+    void serverResponseReceived(const QJsonObject &response);
+    void onControlButtonPressed(const QString &deviceName, int action);
+    void onSliderValueChanged(const QString &deviceName, int value);
 
 private:
     Ui::MainWindow *ui;
     Logger *logger;  // Экземпляр логгера
     NetworkManager *networkManager;  // Экземпляр нетворк манагера
+    DeviceControlFactory *deviceControlFactory;
     QTimer *timer;
+    QMap<int, DeviceControlBlock*> deviceBlocks;
 };
 
 #endif // MAINWINDOW_H
