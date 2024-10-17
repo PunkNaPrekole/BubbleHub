@@ -1,16 +1,17 @@
 #include "networkmanager.h"
+#include "SettingsManager.h"
+#include "Logger.h"
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QSettings>
 
-NetworkManager::NetworkManager(QObject *parent) : QObject(parent) {
-    manager = new QNetworkAccessManager(this);
+NetworkManager::NetworkManager(QObject *parent, SettingsManager *settings, Logger *logger)
+    : QObject(parent), settingsManager(settings), logger(logger), manager(new QNetworkAccessManager(this)) {
 }
 
 void NetworkManager::authenticate(const QString &username, const QString &password) {
-    QSettings settings("PrekolTech", "BubbleHub");
-    QString serverAddress = settings.value("server/serverAddress", "").toString();
-    int serverPort = settings.value("server/serverPort", "").toInt();
+    QString serverAddress = settingsManager->getSetting<QString>("server/serverAddress", "");
+    int serverPort = settingsManager->getSetting<int>("server/serverPort", 5000);
 
     QJsonObject json;
     json["type"] = "desktopClient1";
@@ -25,17 +26,15 @@ void NetworkManager::authenticate(const QString &username, const QString &passwo
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
     QNetworkReply *reply = manager->post(request, data);
-    connect(reply, &QNetworkReply::finished, this, [this, reply]() {
-        handlerNetworkReply(reply);
-    });
+    connect(reply, &QNetworkReply::finished, this, [this, reply]() { handlerNetworkReply(reply); });
 
 }
 
 void NetworkManager::sendRequest(const QString &message) {
     QSettings settings("PrekolTech", "BubbleHub");
-    QString serverAddress = settings.value("server/serverAddress", "").toString();
-    int serverPort = settings.value("server/serverPort", "").toInt();
-    QString token = settings.value("server/token", "").toString();
+    QString serverAddress = settingsManager->getSetting<QString>("server/serverAddress", "");
+    int serverPort = settingsManager->getSetting<int>("server/serverPort", 5000);
+    QString token = settingsManager->getSetting<QString>("server/token", "");
 
     QJsonObject json;
     json["type"] = "desktopClient1";
@@ -49,9 +48,7 @@ void NetworkManager::sendRequest(const QString &message) {
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
     QNetworkReply *reply = manager->post(request, data);
-    connect(reply, &QNetworkReply::finished, this, [this, reply]() {
-        handlerNetworkReply(reply);
-    });
+    connect(reply, &QNetworkReply::finished, this, [this, reply]() { handlerNetworkReply(reply); });
 
 }
 

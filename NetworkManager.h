@@ -7,11 +7,14 @@
 #include <QJsonObject>
 #include <QJsonArray>
 
+class SettingsManager;
+class Logger;
+
 class NetworkManager : public QObject {
     Q_OBJECT
 
 public:
-    explicit NetworkManager(QObject *parent = nullptr);
+    explicit NetworkManager(QObject *parent, SettingsManager *settings, Logger *logger);
     void authenticate(const QString &username, const QString &password);
     void sendRequest(const QString &message);
 
@@ -30,6 +33,8 @@ private slots:
 
 private:
     QNetworkAccessManager *manager;
+    SettingsManager *settingsManager;
+    Logger *logger;
 };
 
 #endif // NETWORKMANAGER_H

@@ -2,12 +2,15 @@
 <ui version="4.0">
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>1200</width>
+    <height>800</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,7 +19,7 @@
   <property name="styleSheet">
    <string notr="true">/* Основные настройки фона и текста */
 QWidget {
-    background-color: #272727; /* фон для всего приложения */
+    background-color: #191a26; /* фон для всего приложения */
 	font-family: &quot;GOST Common&quot;;
 	text-align: center;
     color: #eeeeee;            /* цвет текста */
@@ -25,23 +28,20 @@ QWidget {
 
 /* Настройки для кнопок */
 QPushButton {
-    background-color: #5b5b85;     /* Основной цвет */
+    background-color: #7189e4;     /* Основной цвет */
     color: white;                  /*текст */
     border-radius: 10px;           /* Скругленные углы */
     padding: 8px 16px;             /* Отступы */
     border: 2px;     /* Бордер с ярким акцентом */
-	box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
 }
 
 QPushButton:hover {
-    background-color: #aaaaff;     /* Яркий розовый цвет при наведении */
+    background-color: #5e71ba;     /* Яркий розовый цвет при наведении */
 }
 
 QPushButton:pressed {
-    background-color: #aaaaff;     /* Красный цвет при нажатии */
-    border: 2px solid;     /* Оранжевая граница при нажатии */
-	box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.5);
-}
+    background-color: #e471c3;     /* Красный цвет при нажатии */
+	border: 2px solid #191a26;}
 
 /* Настройки для слайдеров */
 QSlider::groove:horizontal {
@@ -51,8 +51,8 @@ QSlider::groove:horizontal {
 }
 
 QSlider::handle:horizontal {
-    background: #aaaaff;           /* ручка */
-    border: 2px solid #5b5b85;     /* граница */
+    background: #7189e4;           /* ручка */
+    border: 2px solid #4c5a92;     /* граница */
     width: 20px;
     height: 20px;
     margin: -8px 0;
@@ -60,7 +60,7 @@ QSlider::handle:horizontal {
 }
 
 QSlider::handle:horizontal:hover {
-    background: #5b5b85;           /* цвет при наведении */
+    background: #5e71ba;           /* цвет при наведении */
 }
 
 /* Настройки для полей ввода текста */
@@ -159,135 +159,123 @@ QTabBar::tab:selected {
 QTabBar::tab:hover {
     background: #aaaaff; /* Цвет фона при наведении на вкладку */
 }
+
+QScrollArea {
+    background-color: #292e47; /* Цвет фона области прокрутки */
+    border: none; /* Цвет и стиль рамки */
+}
 </string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QTabWidget" name="tabWidget">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>0</y>
-      <width>801</width>
-      <height>571</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true"/>
-    </property>
-    <property name="currentIndex">
-     <number>2</number>
-    </property>
-    <widget class="QWidget" name="mainMenu">
-     <attribute name="title">
-      <string>menu</string>
-     </attribute>
-     <widget class="QWidget" name="gridLayoutWidget">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>10</y>
-        <width>112</width>
-        <height>161</height>
-       </rect>
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>1242</width>
+     <height>867</height>
+    </size>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout">
+    <item>
+     <layout class="QHBoxLayout" name="mainLayot" stretch="1,3,2">
+      <property name="sizeConstraint">
+       <enum>QLayout::SizeConstraint::SetMaximumSize</enum>
       </property>
-      <layout class="QGridLayout" name="ButtonsGridLayout">
-       <property name="topMargin">
-        <number>0</number>
-       </property>
-       <property name="spacing">
-        <number>0</number>
-       </property>
-       <item row="3" column="0">
-        <widget class="QPushButton" name="getDevicesButton">
-         <property name="text">
-          <string>Show devices</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QPushButton" name="getDataButton">
-         <property name="text">
-          <string>Show charts</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QPushButton" name="connectButton">
-         <property name="text">
-          <string>Connect</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QPushButton" name="settingsButton">
-         <property name="styleSheet">
-          <string notr="true"/>
-         </property>
-         <property name="text">
-          <string>Settings</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QLabel" name="stateLabel">
-      <property name="geometry">
-       <rect>
-        <x>638</x>
-        <y>0</y>
-        <width>131</width>
-        <height>33</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Disconnected&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="rebootButton">
-      <property name="geometry">
-       <rect>
-        <x>690</x>
-        <y>40</y>
-        <width>75</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">QPushButton {
-    background-color: #e0301e;     /* Основной цвет */
-    color: #eeeeee;                  /*текст */
-    border-radius: 10px;           /* Скругленные углы */
-    padding: 4px 8px;             /* Отступы */
-    border: 2px;     /* Бордер с ярким акцентом */
-}
-
-QPushButton:hover {
-    background-color: #eb8c00;     /* Яркий розовый цвет при наведении */
-}
-
-QPushButton:pressed {
-    background-color: #a32020;     /* Красный цвет при нажатии */
-    border: 2px solid;     /* Оранжевая граница при нажатии */
-}</string>
-      </property>
-      <property name="text">
-       <string>Reboot</string>
-      </property>
-     </widget>
-     <widget class="QWidget" name="gridLayoutWidget_2">
-      <property name="geometry">
-       <rect>
-        <x>190</x>
-        <y>30</y>
-        <width>421</width>
-        <height>101</height>
-       </rect>
-      </property>
-      <layout class="QGridLayout" name="systemControl">
-       <item row="2" column="1">
-        <widget class="QPushButton" name="dbRestartBtn">
-         <property name="styleSheet">
-          <string notr="true">QPushButton {
+      <item>
+       <layout class="QGridLayout" name="leftLayout" rowstretch="1,5">
+        <property name="sizeConstraint">
+         <enum>QLayout::SizeConstraint::SetMaximumSize</enum>
+        </property>
+        <item row="0" column="0">
+         <layout class="QGridLayout" name="ButtonsGridLayout">
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="spacing">
+           <number>0</number>
+          </property>
+          <item row="3" column="0">
+           <widget class="QPushButton" name="getDevicesButton">
+            <property name="text">
+             <string>Show devices</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QPushButton" name="settingsButton">
+            <property name="styleSheet">
+             <string notr="true"/>
+            </property>
+            <property name="text">
+             <string>Settings</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QPushButton" name="connectButton">
+            <property name="text">
+             <string>Connect</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QPushButton" name="getDataButton">
+            <property name="text">
+             <string>Show charts</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="1" column="0">
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <item>
+           <widget class="QLabel" name="label_2">
+            <property name="styleSheet">
+             <string notr="true">qproperty-alignment: AlignCenter;</string>
+            </property>
+            <property name="text">
+             <string>There will be something here too</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="middleLayout">
+        <property name="sizeConstraint">
+         <enum>QLayout::SizeConstraint::SetMaximumSize</enum>
+        </property>
+        <item>
+         <widget class="QScrollArea" name="scrollArea">
+          <property name="sizeAdjustPolicy">
+           <enum>QAbstractScrollArea::SizeAdjustPolicy::AdjustIgnored</enum>
+          </property>
+          <property name="widgetResizable">
+           <bool>true</bool>
+          </property>
+          <widget class="QWidget" name="scrollAreaWidgetContents">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>582</width>
+             <height>733</height>
+            </rect>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_3" stretch="1,7">
+            <item>
+             <layout class="QGridLayout" name="systemControl">
+              <item row="2" column="1">
+               <widget class="QPushButton" name="dbRestartBtn">
+                <property name="styleSheet">
+                 <string notr="true">QPushButton {
     background-color: #ff7400;     /* Основной цвет */
     color: #eeeeee;                  /*текст */
     border-radius: 10px;           /* Скругленные углы */
@@ -301,18 +289,18 @@ QPushButton:hover {
 
 QPushButton:pressed {
     background-color: #ff4d00;     /* Красный цвет при нажатии */
-    border: 2px solid;     /* Оранжевая граница при нажатии */
+    border: 2px solid #191a26;
 }</string>
-         </property>
-         <property name="text">
-          <string>restart</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QPushButton" name="brokerRestartBtn">
-         <property name="styleSheet">
-          <string notr="true">QPushButton {
+                </property>
+                <property name="text">
+                 <string>restart</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QPushButton" name="brokerRestartBtn">
+                <property name="styleSheet">
+                 <string notr="true">QPushButton {
     background-color: #ff7400;     /* Основной цвет */
     color: #eeeeee;                  /*текст */
     border-radius: 10px;           /* Скругленные углы */
@@ -326,32 +314,32 @@ QPushButton:hover {
 
 QPushButton:pressed {
     background-color: #ff4d00;     /* Красный цвет при нажатии */
-    border: 2px solid;     /* Оранжевая граница при нажатии */
+    border: 2px solid #191a26;
 }</string>
-         </property>
-         <property name="text">
-          <string>restart</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="3">
-        <widget class="QLabel" name="noneLabel">
-         <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;TextLabel&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="mqttBrokerStateLabel">
-         <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;active&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="2">
-        <widget class="QPushButton" name="rebootAllDevicesBtn">
-         <property name="styleSheet">
-          <string notr="true">QPushButton {
+                </property>
+                <property name="text">
+                 <string>restart</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="3">
+               <widget class="QLabel" name="noneLabel">
+                <property name="text">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;TextLabel&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="mqttBrokerStateLabel">
+                <property name="text">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;active&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="2">
+               <widget class="QPushButton" name="rebootAllDevicesBtn">
+                <property name="styleSheet">
+                 <string notr="true">QPushButton {
     background-color: #ff7400;     /* Основной цвет */
     color: #eeeeee;                  /*текст */
     border-radius: 10px;           /* Скругленные углы */
@@ -365,18 +353,18 @@ QPushButton:hover {
 
 QPushButton:pressed {
     background-color: #ff4d00;     /* Красный цвет при нажатии */
-    border: 2px solid;     /* Оранжевая граница при нажатии */
+     border: 2px solid #191a26;
 }</string>
-         </property>
-         <property name="text">
-          <string>restart all</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="3">
-        <widget class="QPushButton" name="pushButton_4">
-         <property name="styleSheet">
-          <string notr="true">QPushButton {
+                </property>
+                <property name="text">
+                 <string>restart all</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="3">
+               <widget class="QPushButton" name="pushButton_4">
+                <property name="styleSheet">
+                 <string notr="true">QPushButton {
     background-color: #ff7400;     /* Основной цвет */
     color: #eeeeee;                  /*текст */
     border-radius: 10px;           /* Скругленные углы */
@@ -390,92 +378,124 @@ QPushButton:hover {
 
 QPushButton:pressed {
     background-color: #ff4d00;     /* Красный цвет при нажатии */
-    border: 2px solid;     /* Оранжевая граница при нажатии */
+     border: 2px solid #191a26;
 }</string>
-         </property>
-         <property name="text">
-          <string>restart</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="2">
-        <widget class="QLabel" name="devicesCountLabel">
-         <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&amp;quot;count&amp;quot;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QLabel" name="dbStateLabel">
-         <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;active&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_5">
-         <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;mqtt broker&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QLabel" name="label_6">
-         <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;database&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="2">
-        <widget class="QLabel" name="label_7">
-         <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;devices&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="3">
-        <widget class="QLabel" name="label_8">
-         <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;TextLabel&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-    </widget>
-    <widget class="QWidget" name="chartMenu">
-     <attribute name="title">
-      <string>charts</string>
-     </attribute>
-     <widget class="QWidget" name="verticalLayoutWidget">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>781</width>
-        <height>521</height>
-       </rect>
-      </property>
-      <layout class="QVBoxLayout" name="chartLayout"/>
-     </widget>
-    </widget>
-    <widget class="QWidget" name="controlMenu">
-     <attribute name="title">
-      <string>devices</string>
-     </attribute>
-     <widget class="QWidget" name="gridLayoutWidget_3">
-      <property name="geometry">
-       <rect>
-        <x>-1</x>
-        <y>-1</y>
-        <width>791</width>
-        <height>521</height>
-       </rect>
-      </property>
-      <layout class="QGridLayout" name="devicesLayout"/>
-     </widget>
-    </widget>
-   </widget>
+                </property>
+                <property name="text">
+                 <string>restart</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="2">
+               <widget class="QLabel" name="devicesCountLabel">
+                <property name="text">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&amp;quot;count&amp;quot;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QLabel" name="dbStateLabel">
+                <property name="text">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;active&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_5">
+                <property name="text">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;mqtt broker&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QLabel" name="label_6">
+                <property name="text">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;database&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <widget class="QLabel" name="label_7">
+                <property name="text">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;devices&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="3">
+               <widget class="QLabel" name="label_8">
+                <property name="text">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;TextLabel&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="chartLayout"/>
+            </item>
+           </layout>
+          </widget>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="rightLayout" stretch="1,13">
+        <property name="sizeConstraint">
+         <enum>QLayout::SizeConstraint::SetMaximumSize</enum>
+        </property>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="5,1">
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_3">
+            <item>
+             <widget class="QLabel" name="stateLabel">
+              <property name="styleSheet">
+               <string notr="true">qproperty-alignment: AlignCenter;</string>
+              </property>
+              <property name="text">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Disconnected&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QPushButton" name="rebootButton">
+            <property name="styleSheet">
+             <string notr="true">QPushButton {
+    background-color: #b41c2b;   
+    color: #eeeeee;       
+    border-radius: 10px;      
+    padding: 4px 8px;   
+    border: 2px;  
+}
+
+QPushButton:hover {
+    background-color: #eb8c00;  
+}
+
+QPushButton:pressed {
+    background-color: #851d22;
+    border: 2px solid #191a26;
+}
+</string>
+            </property>
+            <property name="text">
+             <string>Reboot</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QGridLayout" name="devicesLayout"/>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </item>
+   </layout>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QMenuBar" name="menubar">
@@ -483,7 +503,7 @@ QPushButton:pressed {
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>1200</width>
      <height>23</height>
     </rect>
    </property>

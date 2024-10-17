@@ -4,43 +4,44 @@
 #include "networkmanager.h"
 #include "logger.h"
 #include "devicecontrolfactory.h"
+#include "ServiceDiscovery.h"
+#include "SettingsManager.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
     , logger(new Logger(QDir::currentPath() + "/event_log.txt"))  // инициализируем логгер и \/
-    , networkManager(new NetworkManager(this))
-    , deviceControlFactory(new DeviceControlFactory(this))    //                    нетворк менеджер
+    , networkManager(new NetworkManager(this, &settingsManager, logger))
+    , deviceControlFactory(new DeviceControlFactory(this))   //                    нетворк менеджер
+    , serviceDiscovery(new ServiceDiscovery(this))
+    , settingsManager("PrekolTech", "BubbleHub")
 {
     ui->setupUi(this);
-
     this->setMinimumSize(800, 600);
     timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &MainWindow::GetSystemState);
-    QSettings settings("PrekolTech", "BubbleHub");
-    bool checkBoxState = settings.value("system/polling", false).toBool();
+
+    bool checkBoxState = settingsManager.getSetting("system/polling", false);
+    bool isMDNSDiscoveryEnabled = settingsManager.getSetting("service/mdnsDiscovery", true);
+
     if (checkBoxState) {
         timer->start(2000); // Запускаем таймер
     } else {
         timer->stop(); // Останавливаем таймер
     }
+    if (isMDNSDiscoveryEnabled) {
+        serviceDiscovery->startDiscovery(); // Вызываем функцию только если настройка true
+    }
+
     sendMessageToServer("validate token");
     // Подключаем сигналы к слотам
     connect(ui->settingsButton, &QPushButton::clicked, this, &MainWindow::openSettings);
-    connect(ui->connectButton, &QPushButton::clicked, this, [this]() {
-        sendMessageToServer("validate token");
-    });
-    connect(ui->getDataButton, &QPushButton::clicked, this, [this]() {
-        sendMessageToServer("get data");
-    });
-    connect(ui->getDevicesButton, &QPushButton::clicked, this, [this]() {
-        sendMessageToServer("get devices");
-    });
-    connect(ui->rebootButton, &QPushButton::clicked, this, [this]() {
-        sendMessageToServer("reboot system");
-    });
+    connect(ui->connectButton, &QPushButton::clicked, this, [this]() { sendMessageToServer("validate token"); });
+    connect(ui->getDataButton, &QPushButton::clicked, this, [this]() { sendMessageToServer("get data"); });
+    connect(ui->getDevicesButton, &QPushButton::clicked, this, [this]() { sendMessageToServer("get devices"); });
+    connect(ui->rebootButton, &QPushButton::clicked, this, [this]() { sendMessageToServer("reboot system"); });
 
-    // Подключаем сигналы от нетворк манагера)
+    // Подключаем сигналы
     connect(networkManager, &NetworkManager::authenticationSuccess, this, &MainWindow::handlerAuthSuccess);
     connect(networkManager, &NetworkManager::requestFinished, this, &MainWindow::handlerServerResponse);
     connect(networkManager, &NetworkManager::connectionStatusChanged, this, &MainWindow::updateConnectionStatus);
@@ -49,6 +50,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(networkManager, &NetworkManager::temperatureReceived, this, &MainWindow::updateCharts);
     connect(networkManager, &NetworkManager::systemStateReceived, this, &MainWindow::updateSystemState);
     connect(networkManager, &NetworkManager::devicesStateReceived, this, &MainWindow::onDeviceStatusReceived);
+    connect(serviceDiscovery, &ServiceDiscovery::serviceDiscovered, this, &MainWindow::onServerFound);
 
 
 }
@@ -57,6 +59,8 @@ MainWindow::~MainWindow() {
     delete ui;
     delete logger;
     delete networkManager;
+    delete deviceControlFactory;
+    delete serviceDiscovery;
 }
 
 void MainWindow::updateTimerState(bool checked) {
@@ -68,14 +72,32 @@ void MainWindow::updateTimerState(bool checked) {
     }
 }
 
+void MainWindow::onServerFound(const QString &addr, int port, const QString &message){
+    if (message == "bubbleCore"){
+        serviceDiscovery->stopDiscovery();
+        settingsManager.setSetting("server/serverAddress", addr);
+        settingsManager.setSetting("server/serverPort", port);
+    }
+
+}
+void MainWindow::updateModeState(bool checked){
+    // функция смены режима работы локальная/глобальная сеть
+    settingsManager.setSetting("server/autoSearch", checked);
+    if (checked){
+        //TODO допилить
+    } else {
+        //TODO допилить
+    }
+}
+
 void MainWindow::openSettings() {
     // функция открывающая окно настроек
     SettingsWindow settingsWindow(this);
     connect(&settingsWindow, &SettingsWindow::pollingServerState, this, &MainWindow::updateTimerState);
+    connect(&settingsWindow, &SettingsWindow::networkModeChanged, this, &MainWindow::updateModeState);
     if (settingsWindow.exec() == QDialog::Accepted) {
         logger->logEvent("Settings updated successfully");
-        QSettings settings("PrekolTech", "BubbleHub");
-        QString token = settings.value("server/token", "").toString();
+        QString token = settingsManager.getSetting<QString>("server/token", "");
 
         if (token.isEmpty()) {
             ServerAuth();
@@ -102,8 +124,8 @@ void MainWindow::updateSystemState(const QJsonObject &state){
 void MainWindow::ServerAuth() {
     // функция отправляющая запрос для получения auth токена
     QSettings settings("PrekolTech", "BubbleHub");
-    QString username = settings.value("user/username", "").toString();
-    QString passwd = settings.value("user/password", "").toString();
+    QString username = settingsManager.getSetting<QString>("user/username", "");
+    QString passwd = settingsManager.getSetting<QString>("user/password", "");
     networkManager->authenticate(username, passwd);
 }
 
@@ -136,8 +158,7 @@ void MainWindow::handlerAuthSuccess(const QString &token) {
     logger->logEvent("Successfully authenticated. Token: " + token);
 
     // Сохранение токена
-    QSettings settings("PrekolTech", "BubbleHub");
-    settings.setValue("server/token", token);
+    settingsManager.setSetting("server/token", token);
 }
 
 void MainWindow::handlerServerResponse(const QJsonObject &response) {
@@ -148,7 +169,7 @@ void MainWindow::handlerServerResponse(const QJsonObject &response) {
 void MainWindow::onDevicesReceived(const QJsonArray &devices) {
     // Создание новых элементов управления для устройств
     int row = 0, col = 0;  // Индексы для размещения в сетке
-    const int maxColumns = 4;  // Количество столбцов
+    const int maxColumns = 2;  // Количество столбцов
 
     for (const QJsonValue &deviceVal : devices) {
         QJsonObject deviceObj = deviceVal.toObject();

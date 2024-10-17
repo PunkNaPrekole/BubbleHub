@@ -17,6 +17,7 @@ public:
 
 signals:
     void pollingServerState(bool &state);
+    void networkModeChanged(bool &mode);
 
 private:
     Ui::SettingsWindow *ui;
