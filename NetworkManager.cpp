@@ -9,9 +9,11 @@ NetworkManager::NetworkManager(QObject *parent, SettingsManager *settings, Logge
     : QObject(parent), settingsManager(settings), logger(logger), manager(new QNetworkAccessManager(this)) {
 }
 
-void NetworkManager::authenticate(const QString &username, const QString &password) {
+void NetworkManager::authenticate() {
     QString serverAddress = settingsManager->getSetting<QString>("server/serverAddress", "");
     int serverPort = settingsManager->getSetting<int>("server/serverPort", 5000);
+    QString username = settingsManager->getSetting<QString>("user/username", "");
+    QString password = settingsManager->getSetting<QString>("user/password", "");
 
     QJsonObject json;
     json["type"] = "desktopClient1";
@@ -63,7 +65,13 @@ void NetworkManager::handlerNetworkReply(QNetworkReply *reply) {
         // Используем словарь для сопоставления сообщений с действиями
         QMap<QString, std::function<void()>> messageHandlers = {
             {"auth ok", [&]() { emit authenticationSuccess(jsonObject["token"].toString()); }},
-            {"validate token", [&]() { emit connectionStatusChanged(jsonObject["success"].toBool()); }},
+            {"validate token", [&]() {
+                 bool success = jsonObject["success"].toBool();
+                 emit connectionStatusChanged(success);
+                 if (!success) {
+                     authenticate();  // Вызываем authenticate, если success == false
+                 }
+             }},
             {"devices", [&]() { emit devicesReceived(jsonObject["devices"].toArray()); }},
             {"data", [&]() { emit dataReceived(jsonObject["charts"].toArray()); }},
             {"temperature_update", [&]() { emit temperatureReceived(jsonObject["temperature"].toDouble()); }},

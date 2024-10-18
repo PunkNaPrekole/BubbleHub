@@ -29,9 +29,7 @@ public:
 
 private slots:
     void openSettings();  // Открытие окна настроек
-    void ServerAuth();  // Аутентификация на сервере
     void GetSystemState();
-    void sendMessageToServer(const QString &message);  // Отправка сообщения на сервер
     void handlerAuthSuccess(const QString &token);  // Обработка успешной аутентификации
     void handlerServerResponse(const QJsonObject &response);  // Обработка ответа от сервера
     void updateConnectionStatus(bool success);
@@ -44,6 +42,7 @@ private slots:
     void onDeviceStatusReceived(const QJsonArray &devicesStatusList);
     void onServerFound(const QString &addr, int port, const QString &message);
     void searchServerOverMDNS();
+
 
 signals:
     void serverResponseReceived(const QJsonObject &response);

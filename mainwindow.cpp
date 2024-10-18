@@ -19,27 +19,24 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     this->setMinimumSize(800, 600);
     timer = new QTimer(this);
-    connect(timer, &QTimer::timeout, this, &MainWindow::GetSystemState);
+    connect(timer, &QTimer::timeout, this, [this]() { networkManager->sendRequest("get_system_state"); });
 
     bool checkBoxState = settingsManager.getSetting("system/polling", false);
-    bool isMDNSDiscoveryEnabled = settingsManager.getSetting("service/mdnsDiscovery", true);
+
+
+    networkManager->sendRequest("validate token");
 
     if (checkBoxState) {
         timer->start(2000); // Запускаем таймер
     } else {
         timer->stop(); // Останавливаем таймер
     }
-    if (isMDNSDiscoveryEnabled) {
-        serviceDiscovery->startDiscovery(); // Вызываем функцию только если настройка true
-    }
-
-    sendMessageToServer("validate token");
     // Подключаем сигналы к слотам
     connect(ui->settingsButton, &QPushButton::clicked, this, &MainWindow::openSettings);
-    connect(ui->connectButton, &QPushButton::clicked, this, [this]() { sendMessageToServer("validate token"); });
-    connect(ui->getDataButton, &QPushButton::clicked, this, [this]() { sendMessageToServer("get data"); });
-    connect(ui->getDevicesButton, &QPushButton::clicked, this, [this]() { sendMessageToServer("get devices"); });
-    connect(ui->rebootButton, &QPushButton::clicked, this, [this]() { sendMessageToServer("reboot system"); });
+    connect(ui->connectButton, &QPushButton::clicked, this, [this]() { networkManager->sendRequest("validate token"); });
+    connect(ui->getDataButton, &QPushButton::clicked, this, [this]() { networkManager->sendRequest("get data"); });
+    connect(ui->getDevicesButton, &QPushButton::clicked, this, [this]() { networkManager->sendRequest("get devices"); });
+    connect(ui->rebootButton, &QPushButton::clicked, this, [this]() { networkManager->sendRequest("reboot system"); });
 
     // Подключаем сигналы
     connect(networkManager, &NetworkManager::authenticationSuccess, this, &MainWindow::handlerAuthSuccess);
@@ -72,14 +69,6 @@ void MainWindow::updateTimerState(bool checked) {
     }
 }
 
-void MainWindow::onServerFound(const QString &addr, int port, const QString &message){
-    if (message == "bubbleCore"){
-        serviceDiscovery->stopDiscovery();
-        settingsManager.setSetting("server/serverAddress", addr);
-        settingsManager.setSetting("server/serverPort", port);
-    }
-
-}
 void MainWindow::updateModeState(bool checked){
     // функция смены режима работы локальная/глобальная сеть
     settingsManager.setSetting("server/autoSearch", checked);
@@ -90,20 +79,6 @@ void MainWindow::updateModeState(bool checked){
     }
 }
 
-void MainWindow::openSettings() {
-    // функция открывающая окно настроек
-    SettingsWindow settingsWindow(this);
-    connect(&settingsWindow, &SettingsWindow::pollingServerState, this, &MainWindow::updateTimerState);
-    connect(&settingsWindow, &SettingsWindow::networkModeChanged, this, &MainWindow::updateModeState);
-    if (settingsWindow.exec() == QDialog::Accepted) {
-        logger->logEvent("Settings updated successfully");
-        QString token = settingsManager.getSetting<QString>("server/token", "");
-
-        if (token.isEmpty()) {
-            ServerAuth();
-        }
-    }
-}
 void MainWindow::updateSystemState(const QJsonObject &state){
     QString brokerState = state.value("broker state").toString();
     QString dbState = state.value("db state").toString();
@@ -121,34 +96,48 @@ void MainWindow::updateSystemState(const QJsonObject &state){
     ui->noneLabel->setAlignment(Qt::AlignCenter);
 }
 
-void MainWindow::ServerAuth() {
-    // функция отправляющая запрос для получения auth токена
-    QSettings settings("PrekolTech", "BubbleHub");
-    QString username = settingsManager.getSetting<QString>("user/username", "");
-    QString passwd = settingsManager.getSetting<QString>("user/password", "");
-    networkManager->authenticate(username, passwd);
+void MainWindow::openSettings() {
+    // функция открывающая окно настроек
+    SettingsWindow settingsWindow(this);
+    connect(&settingsWindow, &SettingsWindow::pollingServerState, this, &MainWindow::updateTimerState);
+    connect(&settingsWindow, &SettingsWindow::networkModeChanged, this, &MainWindow::updateModeState);
+    if (settingsWindow.exec() == QDialog::Accepted) {
+        logger->logEvent("Settings updated successfully");
+        QString token = settingsManager.getSetting<QString>("server/token", "");
+
+        if (token.isEmpty()) {
+            networkManager->authenticate();
+        }
+    }
 }
 
-void MainWindow::GetSystemState(){
-    // функция запроса данных по температуре
-    sendMessageToServer("get_system_state");
+void MainWindow::onServerFound(const QString &addr, int port, const QString &message){
+    if (message == "bubbleCore"){
+        serviceDiscovery->stopDiscovery();
+        settingsManager.setSetting("server/serverAddress", addr);
+        settingsManager.setSetting("server/serverPort", port);
+        networkManager->sendRequest("validate token");
+    }
+
 }
 
+void MainWindow::searchServerOverMDNS(){
+    bool isMDNSDiscoveryEnabled = settingsManager.getSetting("service/mdnsDiscovery", true);
+    if (isMDNSDiscoveryEnabled) {
+        serviceDiscovery->startDiscovery(); // Вызываем функцию только если настройка true
+        ui->stateLabel->setText("trying to discover the server...");
+        ui->stateLabel->setStyleSheet("color: orange;");
+    }
+}
 void MainWindow::updateConnectionStatus(bool success) {
-    // функция которая красит надпись(коннектед ор нот коннектед) рядом с кнопкой connect
+    // функция которая красит надпись(коннектед ор нот коннектед)
     if (success) {
         ui->stateLabel->setText("Connected");
         ui->stateLabel->setStyleSheet("color: green;");
     } else {
-        ui->stateLabel->setText("Failed to connect");
+        ui->stateLabel->setText("auth failed");
         ui->stateLabel->setStyleSheet("color: red;");
     }
-}
-
-
-void MainWindow::sendMessageToServer(const QString &message) {
-    // функция отправки мессенджа на сервер
-    networkManager->sendRequest(message);
 }
 
 void MainWindow::handlerAuthSuccess(const QString &token) {
@@ -162,7 +151,7 @@ void MainWindow::handlerAuthSuccess(const QString &token) {
 }
 
 void MainWindow::handlerServerResponse(const QJsonObject &response) {
-    // хэндлер ответа от сервера?
+    // хэндлер ответа от сервера при неизвестном ответе
     qDebug() << "Server response:" << response;
 }
 

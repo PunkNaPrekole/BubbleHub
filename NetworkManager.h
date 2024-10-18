@@ -15,7 +15,7 @@ class NetworkManager : public QObject {
 
 public:
     explicit NetworkManager(QObject *parent, SettingsManager *settings, Logger *logger);
-    void authenticate(const QString &username, const QString &password);
+    void authenticate();
     void sendRequest(const QString &message);
 
 signals:
