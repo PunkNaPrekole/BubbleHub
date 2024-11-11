@@ -3,33 +3,35 @@
 
 ServiceDiscovery::ServiceDiscovery(QObject *parent)
     : QObject(parent),
-    multicastAddress(QHostAddress("224.0.0.1")), // Пример адреса для multicast
-    multicastPort(12345), // Пример порта
+    broadcastPort(12345),
     discovering(false) {
     udpSocket = new QUdpSocket(this);
     connect(udpSocket, &QUdpSocket::readyRead, this, &ServiceDiscovery::readPendingDatagrams);
+
+    discoveryTimer = new QTimer(this);
+    connect(discoveryTimer, &QTimer::timeout, this, &ServiceDiscovery::sendDiscoveryRequest);
 }
 
 void ServiceDiscovery::startDiscovery() {
     if (discovering) return;
-
-    // Присоединяемся к multicast-группе
-    udpSocket->bind(multicastPort, QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint);
-    udpSocket->joinMulticastGroup(multicastAddress);
+    udpSocket->bind(QHostAddress("192.168.0.255"), broadcastPort);
     discovering = true;
+    discoveryTimer->start(1000);
+    sendDiscoveryRequest();
+}
 
-    // Отправляем запрос на обнаружение
-    QByteArray datagram = "DISCOVER"; // Сообщение для обнаружения
-    udpSocket->writeDatagram(datagram, multicastAddress, multicastPort);
+void ServiceDiscovery::sendDiscoveryRequest() {
+    QByteArray datagram = "DISCOVER_BUBBLECORE";
+    udpSocket->writeDatagram(datagram, QHostAddress("192.168.0.255"), broadcastPort);
 }
 
 void ServiceDiscovery::stopDiscovery() {
-    // функция остановки поиска сервера
     if (!discovering) return;
 
-    udpSocket->leaveMulticastGroup(multicastAddress);
     udpSocket->close();
     discovering = false;
+
+    discoveryTimer->stop();
 }
 
 void ServiceDiscovery::readPendingDatagrams() {
@@ -42,14 +44,12 @@ void ServiceDiscovery::readPendingDatagrams() {
         udpSocket->readDatagram(datagram.data(), datagram.size(), &sender, &senderPort);
         QString message = QString::fromUtf8(datagram);
 
-        qDebug() << "Discovered service at" << sender.toString() << ":" << senderPort;
-        int port = static_cast<int>(senderPort);
-        emit serviceDiscovered(sender.toString(), port, message);
+        emit serviceDiscovered(sender.toString(), static_cast<int>(senderPort), message);
     }
 }
 
 void ServiceDiscovery::restartDiscovery()
 {
-    stopDiscovery(); // Останавливаем текущий поиск, если он активен
-    startDiscovery(); // Запускаем новый поиск
+    stopDiscovery();
+    startDiscovery();
 }

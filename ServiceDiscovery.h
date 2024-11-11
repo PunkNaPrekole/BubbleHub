@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QUdpSocket>
 #include <QHostAddress>
+#include <QTimer>
 
 class ServiceDiscovery : public QObject {
     Q_OBJECT
@@ -13,6 +14,8 @@ public:
     void startDiscovery();
     void stopDiscovery();
     void restartDiscovery();
+    void sendDiscoveryRequest();
+
 
 signals:
     void serviceDiscovered(const QString &serviceAddress, int servicePort, const QString &message);
@@ -22,9 +25,9 @@ private slots:
 
 private:
     QUdpSocket *udpSocket;
-    QHostAddress multicastAddress;
-    quint16 multicastPort;
+    quint16 broadcastPort;
     bool discovering;
+    QTimer *discoveryTimer;
 };
 
 #endif // SERVICEDISCOVERY_H

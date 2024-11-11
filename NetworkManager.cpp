@@ -17,7 +17,7 @@ void NetworkManager::authenticate() {
 
     QJsonObject json;
     json["type"] = "desktopClient1";
-    json["message"] = "auth";
+    json["message"] = "authentication request";
     json["username"] = username;
     json["password"] = password;
 
@@ -75,7 +75,7 @@ void NetworkManager::handlerNetworkReply(QNetworkReply *reply) {
             {"devices", [&]() { emit devicesReceived(jsonObject["devices"].toArray()); }},
             {"data", [&]() { emit dataReceived(jsonObject["charts"].toArray()); }},
             {"temperature_update", [&]() { emit temperatureReceived(jsonObject["temperature"].toDouble()); }},
-            {"system_state", [&]() { emit systemStateReceived(jsonObject["system_state"].toObject()); }}
+            {"system state", [&]() { emit systemStateReceived(jsonObject["system_state"].toObject()); }}
         };
 
         // Выполняем соответствующий обработчик

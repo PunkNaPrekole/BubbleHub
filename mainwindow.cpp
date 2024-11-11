@@ -23,8 +23,14 @@ MainWindow::MainWindow(QWidget *parent)
 
     bool checkBoxState = settingsManager.getSetting("system/polling", false);
 
-
-    networkManager->sendRequest("validate token");
+    bool isMDNSDiscoveryEnabled = settingsManager.getSetting("service/mdnsDiscovery", true);
+    if (isMDNSDiscoveryEnabled) {
+        serviceDiscovery->startDiscovery(); // Вызываем функцию только если настройка true
+        ui->stateLabel->setText("trying to discover the server...");
+        ui->stateLabel->setStyleSheet("color: orange;");
+    } else {
+        networkManager->sendRequest("validate token");
+    }
 
     if (checkBoxState) {
         timer->start(2000); // Запускаем таймер
@@ -70,7 +76,7 @@ void MainWindow::updateTimerState(bool checked) {
 }
 
 void MainWindow::updateModeState(bool checked){
-    // функция смены режима работы локальная/глобальная сеть
+    // функция смены режима работы
     settingsManager.setSetting("server/autoSearch", checked);
     if (checked){
         //TODO допилить
@@ -137,6 +143,7 @@ void MainWindow::updateConnectionStatus(bool success) {
     } else {
         ui->stateLabel->setText("auth failed");
         ui->stateLabel->setStyleSheet("color: red;");
+        searchServerOverMDNS();
     }
 }
 

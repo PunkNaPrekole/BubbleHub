@@ -29,7 +29,7 @@ public:
 
 private slots:
     void openSettings();  // Открытие окна настроек
-    void GetSystemState();
+    //void GetSystemState();
     void handlerAuthSuccess(const QString &token);  // Обработка успешной аутентификации
     void handlerServerResponse(const QJsonObject &response);  // Обработка ответа от сервера
     void updateConnectionStatus(bool success);
