@@ -33,16 +33,15 @@ private slots:
     void handlerAuthSuccess(const QString &token);  // Обработка успешной аутентификации
     void handlerServerResponse(const QJsonObject &response);  // Обработка ответа от сервера
     void updateConnectionStatus(bool success);
-    void onDevicesReceived(const QJsonArray &devices);
-    void createCharts(const QJsonArray &response);
-    void updateCharts(const double &temperature);
+    void manageCharts(int sensorId, const QString &type, int lastEntry, const QString &chartName, const QJsonArray &readingsArray);
+    void removeStaleCharts();
     void updateTimerState(bool checked);
     void updateSystemState(const QJsonObject &state);
     void updateModeState(bool checked);
-    void onDeviceStatusReceived(const QJsonArray &devicesStatusList);
+    void updateControlBlock(int deviceId, const QJsonObject &state);
     void onServerFound(const QString &addr, int port, const QString &message);
-    void searchServerOverMDNS();
-
+    void searchServer();
+    void processReceivedData(const QJsonObject &data);
 
 signals:
     void serverResponseReceived(const QJsonObject &response);
@@ -58,7 +57,13 @@ private:
     ServiceDiscovery *serviceDiscovery;
     SettingsManager settingsManager;
     QTimer *timer;
-    QMap<int, DeviceControlBlock*> deviceBlocks;
+    QMap<int, DeviceControlBlock*> deviceBlocks; // хранилище контрол блоков
+    QMap<int, QPair<QChart*, QDateTime>> sensorCharts; // Хранилище графиков: sensorId -> (график, последнее обновление)
+    QTimer cleanupTimer; // Таймер для очистки устаревших графиков
+    const int maxIdleTimeMinutes = 15; // Максимальное время без обновлений
+    int row = 0;
+    int col = 0;
+    const int maxColumns = 2;
 };
 
 #endif // MAINWINDOW_H

@@ -7,3 +7,4 @@ template<typename T>
 void SettingsManager::setSetting(const QString& key, const T& value) {
     settings.setValue(key, QVariant::fromValue(value));
 }
+

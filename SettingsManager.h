@@ -8,19 +8,12 @@
 class SettingsManager {
 public:
     SettingsManager(const QString& organization, const QString& application);
-
-    // Шаблонные методы
-    template<typename T>
-    T getSetting(const QString& key, const T& defaultValue);
-
-    template<typename T>
-    void setSetting(const QString& key, const T& value);
+    QString getSettingsFilePath() const;
+    QVariant getSetting(const QString& key, const QVariant& defaultValue = QVariant());
+    void setSetting(const QString& key, const QVariant& value);
 
 private:
     QSettings settings;
 };
-
-// Включение файла с реализацией шаблонов
-#include "SettingsManager.tpp"
 
 #endif // SETTINGSMANAGER_H

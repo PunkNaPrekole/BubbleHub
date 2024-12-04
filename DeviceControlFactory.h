@@ -2,7 +2,9 @@
 #define DEVICECONTROLFACTORY_H
 
 #include <QObject>
-#include "devicecontrolblock.h"
+
+
+class DeviceControlBlock;
 
 class DeviceControlFactory : public QObject
 {
@@ -13,6 +15,7 @@ public:
 
     // Метод для создания блока управления для устройства
     DeviceControlBlock* createControlBlock(const QString &deviceType, const QString &deviceName, int deviceId);
+
 };
 
 #endif // DEVICECONTROLFACTORY_H

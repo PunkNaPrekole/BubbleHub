@@ -23,6 +23,7 @@ void ServiceDiscovery::startDiscovery() {
 void ServiceDiscovery::sendDiscoveryRequest() {
     QByteArray datagram = "DISCOVER_BUBBLECORE";
     udpSocket->writeDatagram(datagram, QHostAddress("192.168.0.255"), broadcastPort);
+    //qDebug() << "send datagram";
 }
 
 void ServiceDiscovery::stopDiscovery() {

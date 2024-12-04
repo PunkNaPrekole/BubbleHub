@@ -3,8 +3,8 @@
 #include <QSettings>
 
 
-SettingsWindow::SettingsWindow(QWidget *parent)
-    : QDialog(parent)
+SettingsWindow::SettingsWindow(QWidget *parent, SettingsManager* settingsManager)
+    : QDialog(parent), settingsManager(settingsManager)
     , ui(new Ui::SettingsWindow)
 {
     ui->setupUi(this);
@@ -28,17 +28,15 @@ void SettingsWindow::saveSettings() {
     bool pollingState = ui->pollCheckBox->isChecked();
     bool networkMode = ui->networkModeCheckBox->isChecked();
 
-    QSettings settings("PrekolTech", "BubbleHub");
-
-    QString oldUsername = settings.value("user/username", "").toString();
-    QString oldPassword = settings.value("user/password", "").toString();
-    bool pollingStateNow = settings.value("system/polling").toBool();
-    bool networkModeNow = settings.value("system/networkMode").toBool();
+    QString oldUsername = settingsManager->getSetting("user/username", "").toString();
+    QString oldPassword = settingsManager->getSetting("user/password", "").toString();
+    bool pollingStateNow = settingsManager->getSetting("system/polling", true).toBool();
+    bool networkModeNow = settingsManager->getSetting("system/networkMode", false).toBool();
     if (username != oldUsername || password != oldPassword) {
         // Если одно из значений изменилось, сбрасываем токен
-        settings.setValue("server/token", "");
-        settings.setValue("user/username", username);
-        settings.setValue("user/password", password);
+        settingsManager->setSetting("server/token", "");
+        settingsManager->setSetting("user/username", username);
+        settingsManager->setSetting("user/password", password);
     }
     if (pollingState != pollingStateNow){
         emit pollingServerState(pollingState);
@@ -47,25 +45,22 @@ void SettingsWindow::saveSettings() {
         emit networkModeChanged(networkMode);
     }
 
-    settings.setValue("server/serverAddress", serverAddress);
-    settings.setValue("server/serverPort", serverPort);
-    settings.setValue("system/polling", pollingState);
-    settings.setValue("system/networkMode", networkMode);
+    settingsManager->setSetting("server/serverAddress", serverAddress);
+    settingsManager->setSetting("server/serverPort", serverPort);
+    settingsManager->setSetting("system/polling", pollingState);
+    settingsManager->setSetting("system/networkMode", networkMode);
     // Закрыть окно после сохранения
     this->accept();
 }
 
 void SettingsWindow::loadSettings() {
-    // Создаём объект QSettings для загрузки настроек
-    QSettings settings("PrekolTech", "BubbleHub");
-
     // Загружаем и отображаем текущие настройки в полях ввода
-    QString serverAddress = settings.value("server/serverAddress", "").toString();
-    QString serverPort = settings.value("server/serverPort", "").toString();
-    QString username = settings.value("user/username", "").toString();
-    QString password = settings.value("user/password", "").toString();
-    bool pollerState = settings.value("system/polling", true).toBool();
-    bool networkMode = settings.value("system/networkMode").toBool();
+    QString serverAddress = settingsManager->getSetting("server/serverAddress", "").toString();
+    QString serverPort = settingsManager->getSetting("server/serverPort", "").toString();
+    QString username = settingsManager->getSetting("user/username", "").toString();
+    QString password = settingsManager->getSetting("user/password", "").toString();
+    bool pollerState = settingsManager->getSetting("system/polling", true).toBool();
+    bool networkMode = settingsManager->getSetting("system/networkMode", false).toBool();
 
     ui->serverAddressLineEdit->setText(serverAddress);
     ui->serverPortLineEdit->setText(serverPort);

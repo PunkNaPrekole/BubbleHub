@@ -105,8 +105,8 @@ QCheckBox::indicator {
 }
 
 QCheckBox::indicator:checked {
-    background-color: #A63BFF;     /* Фиолетовый цвет при выборе */
-    border: 2px solid #D900FF;     /* Яркая розовая рамка при выборе */
+    background-color: #2BFF00;     /* Фиолетовый цвет при выборе */
+    border: 2px solid #2BFF00;     /* Яркая розовая рамка при выборе */
 }
 
 /* Настройки для радиокнопок */
@@ -266,7 +266,7 @@ QScrollArea {
              <x>0</x>
              <y>0</y>
              <width>582</width>
-             <height>733</height>
+             <height>734</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_3" stretch="1,7">
@@ -504,7 +504,7 @@ QPushButton:pressed {
      <x>0</x>
      <y>0</y>
      <width>1200</width>
-     <height>23</height>
+     <height>22</height>
     </rect>
    </property>
   </widget>

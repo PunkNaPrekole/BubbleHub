@@ -6,6 +6,8 @@
 #include "devicecontrolfactory.h"
 #include "ServiceDiscovery.h"
 #include "SettingsManager.h"
+#include "DimmerControlBlock.h"
+#include "BinaryControlBlock.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -21,17 +23,10 @@ MainWindow::MainWindow(QWidget *parent)
     timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, [this]() { networkManager->sendRequest("get_system_state"); });
 
-    bool checkBoxState = settingsManager.getSetting("system/polling", false);
+    bool checkBoxState = settingsManager.getSetting("system/polling", false).toBool();
 
-    bool isMDNSDiscoveryEnabled = settingsManager.getSetting("service/mdnsDiscovery", true);
-    if (isMDNSDiscoveryEnabled) {
-        serviceDiscovery->startDiscovery(); // Вызываем функцию только если настройка true
-        ui->stateLabel->setText("trying to discover the server...");
-        ui->stateLabel->setStyleSheet("color: orange;");
-    } else {
-        networkManager->sendRequest("validate token");
-    }
-
+    searchServer();
+    qDebug() << "Settings file path:" << settingsManager.getSettingsFilePath();
     if (checkBoxState) {
         timer->start(2000); // Запускаем таймер
     } else {
@@ -39,8 +34,8 @@ MainWindow::MainWindow(QWidget *parent)
     }
     // Подключаем сигналы к слотам
     connect(ui->settingsButton, &QPushButton::clicked, this, &MainWindow::openSettings);
-    connect(ui->connectButton, &QPushButton::clicked, this, [this]() { networkManager->sendRequest("validate token"); });
-    connect(ui->getDataButton, &QPushButton::clicked, this, [this]() { networkManager->sendRequest("get data"); });
+    connect(ui->connectButton, &QPushButton::clicked, this, [this]() { networkManager->sendRequest("validate_token"); });
+    connect(ui->getDataButton, &QPushButton::clicked, this, [this]() { networkManager->sendRequest("get_start_data"); });
     connect(ui->getDevicesButton, &QPushButton::clicked, this, [this]() { networkManager->sendRequest("get devices"); });
     connect(ui->rebootButton, &QPushButton::clicked, this, [this]() { networkManager->sendRequest("reboot system"); });
 
@@ -48,11 +43,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(networkManager, &NetworkManager::authenticationSuccess, this, &MainWindow::handlerAuthSuccess);
     connect(networkManager, &NetworkManager::requestFinished, this, &MainWindow::handlerServerResponse);
     connect(networkManager, &NetworkManager::connectionStatusChanged, this, &MainWindow::updateConnectionStatus);
-    connect(networkManager, &NetworkManager::devicesReceived, this, &MainWindow::onDevicesReceived);
-    connect(networkManager, &NetworkManager::dataReceived, this, &MainWindow::createCharts);
-    connect(networkManager, &NetworkManager::temperatureReceived, this, &MainWindow::updateCharts);
-    connect(networkManager, &NetworkManager::systemStateReceived, this, &MainWindow::updateSystemState);
-    connect(networkManager, &NetworkManager::devicesStateReceived, this, &MainWindow::onDeviceStatusReceived);
+    connect(networkManager, &NetworkManager::systemStateReceived, this, &MainWindow::processReceivedData);
     connect(serviceDiscovery, &ServiceDiscovery::serviceDiscovered, this, &MainWindow::onServerFound);
 
 
@@ -81,7 +72,7 @@ void MainWindow::updateModeState(bool checked){
     if (checked){
         //TODO допилить
     } else {
-        //TODO допилить
+        serviceDiscovery->stopDiscovery();
     }
 }
 
@@ -104,12 +95,17 @@ void MainWindow::updateSystemState(const QJsonObject &state){
 
 void MainWindow::openSettings() {
     // функция открывающая окно настроек
-    SettingsWindow settingsWindow(this);
+    qDebug() << "settings open";
+    SettingsWindow settingsWindow(this, &settingsManager);
+    qDebug() << "SettingsWindow created";
+    settingsWindow.setWindowTitle("Settings");
     connect(&settingsWindow, &SettingsWindow::pollingServerState, this, &MainWindow::updateTimerState);
     connect(&settingsWindow, &SettingsWindow::networkModeChanged, this, &MainWindow::updateModeState);
+    qDebug() << "Connections established";
     if (settingsWindow.exec() == QDialog::Accepted) {
         logger->logEvent("Settings updated successfully");
-        QString token = settingsManager.getSetting<QString>("server/token", "");
+        QString token = settingsManager.getSetting("server/token", "").toString();
+        qDebug() << "event 1";
 
         if (token.isEmpty()) {
             networkManager->authenticate();
@@ -122,19 +118,24 @@ void MainWindow::onServerFound(const QString &addr, int port, const QString &mes
         serviceDiscovery->stopDiscovery();
         settingsManager.setSetting("server/serverAddress", addr);
         settingsManager.setSetting("server/serverPort", port);
-        networkManager->sendRequest("validate token");
+        networkManager->sendRequest("validate_token");
+        qDebug() << "Service found:" << addr;
     }
 
 }
 
-void MainWindow::searchServerOverMDNS(){
-    bool isMDNSDiscoveryEnabled = settingsManager.getSetting("service/mdnsDiscovery", true);
+void MainWindow::searchServer(){
+    bool isMDNSDiscoveryEnabled = settingsManager.getSetting("service/mdnsDiscovery", true).toBool();
     if (isMDNSDiscoveryEnabled) {
         serviceDiscovery->startDiscovery(); // Вызываем функцию только если настройка true
         ui->stateLabel->setText("trying to discover the server...");
         ui->stateLabel->setStyleSheet("color: orange;");
+        qDebug() << "Server searching...";
+    } else {
+        networkManager->sendRequest("validate_token");
     }
 }
+
 void MainWindow::updateConnectionStatus(bool success) {
     // функция которая красит надпись(коннектед ор нот коннектед)
     if (success) {
@@ -143,7 +144,7 @@ void MainWindow::updateConnectionStatus(bool success) {
     } else {
         ui->stateLabel->setText("auth failed");
         ui->stateLabel->setStyleSheet("color: red;");
-        searchServerOverMDNS();
+        searchServer();
     }
 }
 
@@ -152,145 +153,171 @@ void MainWindow::handlerAuthSuccess(const QString &token) {
     ui->stateLabel->setText("Connected");
     ui->stateLabel->setStyleSheet("color: green;");
     logger->logEvent("Successfully authenticated. Token: " + token);
-
-    // Сохранение токена
     settingsManager.setSetting("server/token", token);
+    qDebug() << "auth succes!!!";
 }
 
 void MainWindow::handlerServerResponse(const QJsonObject &response) {
-    // хэндлер ответа от сервера при неизвестном ответе
+    // хэндлер ответа от сервера при неизвестном сообщении
     qDebug() << "Server response:" << response;
 }
 
-void MainWindow::onDevicesReceived(const QJsonArray &devices) {
-    // Создание новых элементов управления для устройств
-    int row = 0, col = 0;  // Индексы для размещения в сетке
-    const int maxColumns = 2;  // Количество столбцов
+void MainWindow::processReceivedData(const QJsonObject &devicesInfo)
+{   qDebug() << "received data" << devicesInfo;
 
-    for (const QJsonValue &deviceVal : devices) {
-        QJsonObject deviceObj = deviceVal.toObject();
-        int deviceId = deviceObj["id"].toInt();
-        QString deviceType = deviceObj["type"].toString();
-        QString deviceName = deviceObj["name"].toString();
+    if (devicesInfo.contains("executive")) {
+        qDebug() << "contains exec!";
+        QJsonArray executiveArray = devicesInfo["executive"].toArray();
+        for (const QJsonValue &execItem : executiveArray) {
+            QJsonObject execObject = execItem.toObject();
 
-        // Создаем блок управления для каждого устройства
-        DeviceControlBlock *controlBlock = deviceControlFactory->createControlBlock(deviceType, deviceName, deviceId);
+            int deviceId = execObject["id"].toInt();
+            QString name = execObject["name"].toString();
+            QString type = execObject["type"].toString();
+            QJsonObject state = execObject["state"].toObject();
 
-        // Устанавливаем фиксированный размер
-        controlBlock->setFixedSize(150, 100);  // Задаем размеры блоков управления
+            if (!deviceBlocks.contains(deviceId)) {
+                qDebug() << "added new control block..." << deviceId;
+                DeviceControlBlock *controlBlock = deviceControlFactory->createControlBlock(type, name, deviceId);
+                if (controlBlock) {
+                    controlBlock->setFixedSize(200, 150);
+                    ui->devicesLayout->addWidget(controlBlock, row, col);
+                    deviceBlocks[deviceId] = controlBlock;
+                    qDebug() << "added new control block!!!";
+                }
 
-        // Добавляем блок управления в сетку
-        ui->devicesLayout->addWidget(controlBlock, row, col);
-        deviceBlocks[deviceId] = controlBlock;
+                col++;
+                if (col >= maxColumns) {
+                    col = 0;
+                    row++;
+                }
+            } else {
+                qDebug() << "update control block!";
+                updateControlBlock(deviceId, state);
+            }
 
-        // Обновляем индексы для следующего устройства
-        col++;
-        if (col >= maxColumns) {
-            col = 0;
-            row++;
+        }
+    }
+
+    if (devicesInfo.contains("sensors")) {
+        qDebug() << "contains sensors!";
+        QJsonArray sensorsArray = devicesInfo["sensors"].toArray();
+        for (const QJsonValue &sensorItem : sensorsArray) {
+            QJsonObject sensorObject = sensorItem.toObject();
+
+            int sensorId = sensorObject["id"].toInt();
+            QString type = sensorObject["type"].toString();
+            if (type == "measurement") {
+                qDebug() << "contains measurement sensors!";
+                int lastEntry = sensorObject["last_entry"].toInt();
+                QString chartName = sensorObject["chart_name"].toString();
+                QJsonObject readings = sensorObject["readings"].toObject();
+                QJsonArray readingsArray;
+                for (const QString &timestamp : readings.keys()) {
+                    QJsonObject readingItem;
+                    readingItem["timestamp"] = timestamp;
+                    readingItem["value"] = readings[timestamp];
+                    readingsArray.append(readingItem);
+                }
+                qDebug() << "manageChart for: " << sensorId;
+                manageCharts(sensorId, type, lastEntry, chartName, readingsArray);
+            } else if (type == "state") {
+                // TODO
+            }
+
         }
     }
 }
 
-void MainWindow::onDeviceStatusReceived(const QJsonArray &devicesStatusList)
-{
-    for (const QJsonValue &value : devicesStatusList) {
-        QJsonObject deviceStatus = value.toObject();
 
-        int deviceId = deviceStatus["id"].toInt();
-        // Проверяем, существует ли блок управления для этого устройства
-        if (deviceBlocks.contains(deviceId)) {
-            DeviceControlBlock *controlBlock = deviceBlocks[deviceId];
-            for (const QString &key : deviceStatus.keys()) {
-                if (key != "id") {
-                    int value = deviceStatus[key].toInt();
-                    controlBlock->updateSliderForRole(key, value);
+void MainWindow::updateControlBlock(int deviceId, const QJsonObject &state)
+{
+    DeviceControlBlock *controlBlock = deviceBlocks[deviceId];
+    if (!controlBlock) return;
+
+    // В зависимости от типа устройства обновляем слайдеры
+    if (auto *binaryControlBlock = dynamic_cast<BinaryControlBlock *>(controlBlock)) {
+        // Обработка для binary устройства
+        for (const QString &key : state.keys()) {
+            int value = state[key].toInt();
+            binaryControlBlock->updateSliderForRole(key, value);
+        }
+    } else if (auto *dimmerControlBlock = dynamic_cast<DimmerControlBlock *>(controlBlock)) {
+        // Обработка для dimmer устройства
+        dimmerControlBlock->updateSliders(state);
+    } else {
+        qWarning() << "Unknown device type for update: " << deviceId;
+    }
+}
+
+void MainWindow::manageCharts(int sensorId, const QString &type, int lastEntry, const QString &chartName, const QJsonArray &readingsArray)
+{
+    if (sensorCharts.contains(sensorId)) {
+        qDebug() << "chart exist!";
+        auto &chartPair = sensorCharts[sensorId];
+        QChart *chart = chartPair.first;
+        QLineSeries *series = dynamic_cast<QLineSeries*>(chart->series().first());
+        for (const QJsonValue &readingItem : readingsArray) {
+            QJsonObject readingObject = readingItem.toObject();
+            QDateTime timestamp = QDateTime::fromString(readingObject["timestamp"].toString(), Qt::ISODate);
+            double value = readingObject["value"].toDouble();
+            series->append(timestamp.toMSecsSinceEpoch(), value);
+        }
+        qDebug() << "Chart succefull updtae!";
+        chartPair.second = QDateTime::currentDateTime();
+    } else {
+        qDebug() << "creating new chart...";
+        QChart *chart = new QChart();
+        chart->setTitle(chartName);
+        QLineSeries *series = new QLineSeries();
+        series->setName(type);
+        for (const QJsonValue &readingItem : readingsArray) {
+            QJsonObject readingObject = readingItem.toObject();
+            QDateTime timestamp = QDateTime::fromString(readingObject["timestamp"].toString(), Qt::ISODate);
+            double value = readingObject["value"].toDouble();
+
+            series->append(timestamp.toMSecsSinceEpoch(), value);
+        }
+        chart->addSeries(series);
+        QValueAxis *axisX = new QValueAxis();
+        axisX->setTitleText("Time");
+        axisX->setLabelFormat("%H:%M");
+        chart->addAxis(axisX, Qt::AlignBottom);
+        series->attachAxis(axisX);
+
+        QValueAxis *axisY = new QValueAxis();
+        axisY->setTitleText("Value");
+        chart->addAxis(axisY, Qt::AlignLeft);
+        series->attachAxis(axisY);
+
+        QChartView *chartView = new QChartView(chart);
+        chartView->setRenderHint(QPainter::Antialiasing);
+        ui->chartLayout->addWidget(chartView);
+        sensorCharts[sensorId] = qMakePair(chart, QDateTime::currentDateTime());
+        qDebug() << "new chart succesfull created!!!";
+    }
+}
+
+void MainWindow::removeStaleCharts()
+{
+    QDateTime now = QDateTime::currentDateTime();
+    for (auto it = sensorCharts.begin(); it != sensorCharts.end();) {
+        if (it.value().second.msecsTo(now) > maxIdleTimeMinutes * 60 * 1000) {
+            QChart *chart = it.value().first;
+            for (int i = 0; i < ui->chartLayout->count(); ++i) {
+                QLayoutItem *layoutItem = ui->chartLayout->itemAt(i);
+                if (layoutItem) {
+                    QWidget *widget = layoutItem->widget();
+                    QChartView *chartView = dynamic_cast<QChartView *>(widget);
+                    if (chartView && chartView->chart() == chart) {
+                        ui->chartLayout->removeWidget(chartView);
+                        delete chartView;
+                        break;
+                    }
                 }
             }
         } else {
-            deviceControlFactory->createControlBlock(deviceStatus["type"].toString(), deviceStatus["name"].toString(), deviceStatus["id"].toInt());
+            ++it;
         }
     }
 }
-
-void MainWindow::createCharts(const QJsonArray &response) {
-    // Очищаем предыдущее содержимое виджета
-    QLayoutItem* item;
-    while ((item = ui->chartLayout->takeAt(0)) != nullptr) {
-        delete item->widget();
-        delete item;
-    }
-
-    // Проходим по каждому объекту в массиве
-    for (const QJsonValue &chartValue : response) {
-        QJsonObject chartObject = chartValue.toObject();
-        QString chartName = chartObject["name"].toString();
-
-        // Создаем график
-        QChart *chart = new QChart();
-        chart->setTitle(chartName);
-        chart->setBackgroundBrush(QBrush(QColor("#323232"))); // фон для всего графика
-        chart->setPlotAreaBackgroundBrush(QBrush(QColor("#1E1E1E"))); // фон для области построения графика
-        chart->setTitleBrush(QBrush(QColor("#FFFFFF")));  //  цвет заголовка графика
-
-        // Создаем оси, которые будут общими для всех кривых
-        QValueAxis *axisX = new QValueAxis();
-        axisX->setLabelFormat("%i");
-        axisX->setTitleText("Data Points");
-        axisX->setGridLineColor(QColor("#121212"));  // цвет линий сетки
-        axisX->setLinePenColor(QColor("#121212"));   // цвет осей
-        axisX->setLabelsColor(QColor("#FFFFFF"));    // Цвет подписей на осях
-        axisX->setTitleBrush(QBrush(QColor("#FFFFFF")));  // Цвет заголовка оси
-        chart->addAxis(axisX, Qt::AlignBottom);
-
-        QValueAxis *axisY = new QValueAxis();
-        axisY->setLabelFormat("%f");
-        axisY->setTitleText("Values");
-        axisY->setGridLineColor(QColor("#121212"));  // Цвет линий сетки
-        axisY->setLinePenColor(QColor("#121212"));   // Цвет осей
-        axisY->setLabelsColor(QColor("#FFFFFF"));    // Цвет подписей на осях
-        axisY->setTitleBrush(QBrush(QColor("#FFFFFF")));  // Цвет заголовка оси
-        chart->addAxis(axisY, Qt::AlignLeft);
-
-        // Переменная для индекса по оси X
-        int index = 0;
-
-        // Проходим по каждому ключу, кроме "name", чтобы создать серию для каждой кривой
-        for (const QString &key : chartObject.keys()) {
-            if (key == "name") {
-                continue; // Пропускаем ключ "name"
-            }
-
-            // Получаем массив данных для этой кривой
-            QJsonArray dataArray = chartObject[key].toArray();
-
-            // Создаем серию для графика
-            QLineSeries *series = new QLineSeries();
-            series->setName(key);  // Устанавливаем имя для кривой (например, "indoor", "outdoor")
-
-            // Заполняем серию данными
-            int i = 0;
-            for (const QJsonValue &dataValue : dataArray) {
-                series->append(i++, dataValue.toDouble());
-            }
-
-            // Добавляем серию в график
-            chart->addSeries(series);
-            series->attachAxis(axisX); // Привязываем к общей оси X
-            series->attachAxis(axisY); // Привязываем к общей оси Y
-
-        }
-        axisY->setRange(0, 30);
-        // Создаем виджет для отображения графика
-        QChartView *chartView = new QChartView(chart);
-        chartView->setRenderHint(QPainter::Antialiasing);
-
-        // Добавляем график в компоновку
-        ui->chartLayout->addWidget(chartView);
-    }
-}
-
-void MainWindow::updateCharts(const double &temperature) {
-    //pass
-}
-

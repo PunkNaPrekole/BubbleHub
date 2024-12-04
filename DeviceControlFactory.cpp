@@ -1,4 +1,6 @@
 #include "devicecontrolfactory.h"
+#include "BinaryControlBlock.h"
+#include "DimmerControlBlock.h"
 
 DeviceControlFactory::DeviceControlFactory(QObject *parent) : QObject(parent)
 {
@@ -6,12 +8,13 @@ DeviceControlFactory::DeviceControlFactory(QObject *parent) : QObject(parent)
 
 DeviceControlBlock* DeviceControlFactory::createControlBlock(const QString &deviceType, const QString &deviceName, int deviceId)
 {
-    // В зависимости от типа устройства создаем соответствующий блок управления
-    if (deviceType == "light") {
-        return new DeviceControlBlock(deviceName, deviceId); // Например, блок для управления светом
-    } else if (deviceType == "thermostat") {
-        return new DeviceControlBlock(deviceName, deviceId); // Блок для термостата
+    if (deviceType == "binary") {
+        return new BinaryControlBlock(deviceName, deviceId);
+    } else if (deviceType == "dimmer") {
+        return new DimmerControlBlock(deviceName, deviceId);
     } else {
-        return new DeviceControlBlock(deviceName, deviceId); // Блок по умолчанию
+        // Вернуть nullptr или создать блок по умолчанию
+        qWarning() << "Unknown device type:" << deviceType;
+        return nullptr;
     }
 }

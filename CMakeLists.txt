@@ -17,6 +17,7 @@ set(PROJECT_SOURCES
         mainwindow.cpp
         mainwindow.h
         mainwindow.ui
+        resources.qrc
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -30,13 +31,20 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         Logger.cpp
         DeviceControlFactory.h
         DeviceControlFactory.cpp
-        DeviceControlBlock.h
-        DeviceControlBlock.cpp
+        BinaryControlBlock.h
+        BinaryControlBlock.cpp
         ServiceDiscovery.h
         ServiceDiscovery.cpp
         SettingsManager.tpp
         SettingsManager.h
         SettingsManager.cpp
+        resources.qrc
+        DimmerControlBlock.cpp
+        DimmerControlBlock.h
+        bubblescriptdesigner.h bubblescriptdesigner.cpp bubblescriptdesigner.ui
+
+        DeviceControlBlock.h
+        bubblescriptsmanager.h bubblescriptsmanager.cpp bubblescriptsmanager.ui
 
     )
 # Define target properties for Android with Qt 6 as:

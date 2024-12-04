@@ -22,14 +22,14 @@ signals:
     void authenticationSuccess(const QString &token);
     void requestFinished(const QJsonObject &response);
     void connectionStatusChanged(bool success);
-    void devicesReceived(const QJsonArray &devices);
-    void dataReceived(const QJsonArray &data);
-    void temperatureReceived(const double &temperature);
     void systemStateReceived(const QJsonObject &state);
-    void devicesStateReceived(QJsonArray &devicesStatusList);
+    void updateStateReceived(const QJsonObject &state);
+    void signatureInvalid();
+    void unknownMessageReceived(QString &message);
 
 private slots:
     void handlerNetworkReply(QNetworkReply *reply);
+    bool verifySignature(const QJsonObject &message, const QString &expectedSignature);
 
 private:
     QNetworkAccessManager *manager;
