@@ -10,6 +10,9 @@ class DeviceControlBlock : public QWidget
 public:
     explicit DeviceControlBlock(QWidget *parent = nullptr) : QWidget(parent) {}
     virtual ~DeviceControlBlock() {}
+
+signals:
+    void controlButtonPressed(const QString &deviceName, bool state);
 };
 
 #endif // DEVICECONTROLBLOCK_H

@@ -44,7 +44,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(networkManager, &NetworkManager::requestFinished, this, &MainWindow::handlerServerResponse);
     connect(networkManager, &NetworkManager::connectionStatusChanged, this, &MainWindow::updateConnectionStatus);
     connect(networkManager, &NetworkManager::systemStateReceived, this, &MainWindow::processReceivedData);
+    connect(networkManager, &NetworkManager::unknownMessageReceived, this, &MainWindow::unknownMessageHandler);
     connect(serviceDiscovery, &ServiceDiscovery::serviceDiscovered, this, &MainWindow::onServerFound);
+
 
 
 }
@@ -63,16 +65,6 @@ void MainWindow::updateTimerState(bool checked) {
         timer->start(2000); // Запускаем пуллер
     } else {
         timer->stop(); // Останавливаем пуллер
-    }
-}
-
-void MainWindow::updateModeState(bool checked){
-    // функция смены режима работы
-    settingsManager.setSetting("server/autoSearch", checked);
-    if (checked){
-        //TODO допилить
-    } else {
-        serviceDiscovery->stopDiscovery();
     }
 }
 
@@ -100,7 +92,7 @@ void MainWindow::openSettings() {
     qDebug() << "SettingsWindow created";
     settingsWindow.setWindowTitle("Settings");
     connect(&settingsWindow, &SettingsWindow::pollingServerState, this, &MainWindow::updateTimerState);
-    connect(&settingsWindow, &SettingsWindow::networkModeChanged, this, &MainWindow::updateModeState);
+    connect(&settingsWindow, &SettingsWindow::networkModeChanged, this, &MainWindow::searchServer);
     qDebug() << "Connections established";
     if (settingsWindow.exec() == QDialog::Accepted) {
         logger->logEvent("Settings updated successfully");
@@ -125,15 +117,21 @@ void MainWindow::onServerFound(const QString &addr, int port, const QString &mes
 }
 
 void MainWindow::searchServer(){
-    bool isMDNSDiscoveryEnabled = settingsManager.getSetting("service/mdnsDiscovery", true).toBool();
-    if (isMDNSDiscoveryEnabled) {
-        serviceDiscovery->startDiscovery(); // Вызываем функцию только если настройка true
-        ui->stateLabel->setText("trying to discover the server...");
-        ui->stateLabel->setStyleSheet("color: orange;");
-        qDebug() << "Server searching...";
-    } else {
-        networkManager->sendRequest("validate_token");
+    if (!connected){
+        bool isMDNSDiscoveryEnabled = settingsManager.getSetting("service/mdnsDiscovery", true).toBool();
+        if (isMDNSDiscoveryEnabled) {
+            serviceDiscovery->startDiscovery();
+            ui->stateLabel->setText("trying to discover the server...");
+            ui->stateLabel->setStyleSheet("color: orange;");
+            qDebug() << "Server searching...";
+        } else {
+            networkManager->sendRequest("validate_token");
+        }
     }
+}
+
+void MainWindow::unknownMessageHandler(const QString &message){
+    QMessageBox::information(this, "The core was unable to process the message ¯\_(ツ)_/¯", "The core reports that it has received an unknown message from the client, most likely your version of BubbleCore is outdated");
 }
 
 void MainWindow::updateConnectionStatus(bool success) {
@@ -144,7 +142,7 @@ void MainWindow::updateConnectionStatus(bool success) {
     } else {
         ui->stateLabel->setText("auth failed");
         ui->stateLabel->setStyleSheet("color: red;");
-        searchServer();
+        QMessageBox::information(this, "Error connecting to BubbleCore (>_<)", "Failed to connect to BubbleCore, please enter other data to connect, or activate the core auto-search setting!");
     }
 }
 
@@ -157,8 +155,9 @@ void MainWindow::handlerAuthSuccess(const QString &token) {
     qDebug() << "auth succes!!!";
 }
 
-void MainWindow::handlerServerResponse(const QJsonObject &response) {
+void MainWindow::handlerServerResponse(const QString &response) {
     // хэндлер ответа от сервера при неизвестном сообщении
+    QMessageBox::information(this, "Unknown message received o_0", "An unknown message has been received from the core, most likely your client's version is outdated");
     qDebug() << "Server response:" << response;
 }
 
@@ -183,6 +182,10 @@ void MainWindow::processReceivedData(const QJsonObject &devicesInfo)
                     controlBlock->setFixedSize(200, 150);
                     ui->devicesLayout->addWidget(controlBlock, row, col);
                     deviceBlocks[deviceId] = controlBlock;
+                    connect(controlBlock, &DeviceControlBlock::controlButtonPressed, this, [this, controlBlock](const QString &deviceName, QVariant state) {
+                        qDebug() << "Device:" << deviceName << "State:" << state;
+                        networkManager->sendControlSignal(deviceName, state);
+                    });
                     qDebug() << "added new control block!!!";
                 }
 
@@ -240,7 +243,7 @@ void MainWindow::updateControlBlock(int deviceId, const QJsonObject &state)
         // Обработка для binary устройства
         for (const QString &key : state.keys()) {
             int value = state[key].toInt();
-            binaryControlBlock->updateSliderForRole(key, value);
+            binaryControlBlock->updateButtonForRole(key, value);
         }
     } else if (auto *dimmerControlBlock = dynamic_cast<DimmerControlBlock *>(controlBlock)) {
         // Обработка для dimmer устройства
@@ -292,7 +295,21 @@ void MainWindow::manageCharts(int sensorId, const QString &type, int lastEntry, 
 
         QChartView *chartView = new QChartView(chart);
         chartView->setRenderHint(QPainter::Antialiasing);
-        ui->chartLayout->addWidget(chartView);
+        int totalCharts = sensorCharts.size() + 1;
+        int columns = qMax(2, static_cast<int>(sqrt(totalCharts)));
+        int rows = (totalCharts + columns - 1) / columns; // Округление вверх для строк
+
+        // Устанавливаем одинаковое растяжение для всех строк и колонок
+        for (int i = 0; i < columns; ++i) {
+            ui->chartLayout->setColumnStretch(i, 1);
+        }
+        for (int i = 0; i < rows; ++i) {
+            ui->chartLayout->setRowStretch(i, 1);
+        }
+
+        int row = (totalCharts - 1) / columns;
+        int col = (totalCharts - 1) % columns;
+        ui->chartLayout->addWidget(chartView, row, col);
         sensorCharts[sensorId] = qMakePair(chart, QDateTime::currentDateTime());
         qDebug() << "new chart succesfull created!!!";
     }

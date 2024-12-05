@@ -9,6 +9,7 @@
 #include <QtCharts/QLineSeries>
 #include <QtCharts/QValueAxis>
 #include <QTimer>
+#include <QMessageBox>
 #include "logger.h"
 #include "networkmanager.h"
 #include "devicecontrolfactory.h"
@@ -26,22 +27,22 @@ class MainWindow : public QMainWindow {
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+    bool connected = false;
 
 private slots:
     void openSettings();  // Открытие окна настроек
-    //void GetSystemState();
     void handlerAuthSuccess(const QString &token);  // Обработка успешной аутентификации
-    void handlerServerResponse(const QJsonObject &response);  // Обработка ответа от сервера
+    void handlerServerResponse(const QString &response);  // Обработка ответа от сервера
     void updateConnectionStatus(bool success);
     void manageCharts(int sensorId, const QString &type, int lastEntry, const QString &chartName, const QJsonArray &readingsArray);
     void removeStaleCharts();
     void updateTimerState(bool checked);
     void updateSystemState(const QJsonObject &state);
-    void updateModeState(bool checked);
     void updateControlBlock(int deviceId, const QJsonObject &state);
     void onServerFound(const QString &addr, int port, const QString &message);
     void searchServer();
     void processReceivedData(const QJsonObject &data);
+    void unknownMessageHandler(const QString &message);
 
 signals:
     void serverResponseReceived(const QJsonObject &response);

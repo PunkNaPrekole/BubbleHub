@@ -17,10 +17,11 @@ public:
     explicit NetworkManager(QObject *parent, SettingsManager *settings, Logger *logger);
     void authenticate();
     void sendRequest(const QString &message);
+    void sendControlSignal(const QString &dev_name, QVariant state);
 
 signals:
     void authenticationSuccess(const QString &token);
-    void requestFinished(const QJsonObject &response);
+    void requestFinished(const QString &message);
     void connectionStatusChanged(bool success);
     void systemStateReceived(const QJsonObject &state);
     void updateStateReceived(const QJsonObject &state);

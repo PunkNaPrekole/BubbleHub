@@ -15,9 +15,9 @@ class BinaryControlBlock : public DeviceControlBlock
     Q_OBJECT
 
 public:
-    explicit BinaryControlBlock(const QString &deviceName, int &deviceId, QWidget *parent = nullptr);
+    explicit BinaryControlBlock(const QString &deviceName, int deviceId, QWidget *parent = nullptr);
 
-    void updateSliderForRole(const QString &name, bool value);
+    void updateButtonForRole(const QString &name, bool value);
 
 private:
     QLabel *deviceLabel;
@@ -26,7 +26,6 @@ private:
     QCheckBox *useScenarioSwitch;
 
 signals:
-    void controlButtonPressed(const QString &deviceName, int action);
     void createScenarioRequested(const QString &deviceName);
     void useScenarioToggled(const QString &deviceName, const QString &scenarioName, bool enabled);
 

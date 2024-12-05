@@ -3,7 +3,6 @@
 #include "Logger.h"
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QSettings>
 #include <QCryptographicHash>
 
 NetworkManager::NetworkManager(QObject *parent, SettingsManager *settings, Logger *logger)
@@ -34,7 +33,6 @@ void NetworkManager::authenticate() {
 }
 
 void NetworkManager::sendRequest(const QString &message) {
-    QSettings settings("PrekolTech", "BubbleHub");
     QString serverAddress = settingsManager->getSetting("server/serverAddress", "192.1680.107").toString();
     int serverPort = settingsManager->getSetting("server/serverPort", 12345).toInt();
     QString token = settingsManager->getSetting("server/token", "").toString();
@@ -54,6 +52,30 @@ void NetworkManager::sendRequest(const QString &message) {
     connect(reply, &QNetworkReply::finished, this, [this, reply]() { handlerNetworkReply(reply); });
      qDebug() << "Request send: " << message;
      qDebug() << "request to:" << serverAddress;
+
+}
+
+void NetworkManager::sendControlSignal(const QString &dev_name, QVariant state) {
+    QString serverAddress = settingsManager->getSetting("server/serverAddress", "192.1680.107").toString();
+    int serverPort = settingsManager->getSetting("server/serverPort", 12345).toInt();
+    QString token = settingsManager->getSetting("server/token", "").toString();
+
+    QJsonObject json;
+    json["type"] = "desktopClient";
+    json["token"] = token;
+    json["message"] = "control_signal";
+    json["device_name"] = dev_name;
+    json["state"] = QJsonValue::fromVariant(state);
+
+    QJsonDocument doc(json);
+    QByteArray data = doc.toJson();
+    QString url = QString("http://%1:%2/settings").arg(serverAddress).arg(serverPort);
+    QNetworkRequest request((QUrl(url)));
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+
+    QNetworkReply *reply = manager->post(request, data);
+    connect(reply, &QNetworkReply::finished, this, [this, reply]() { handlerNetworkReply(reply); });
+
 
 }
 
@@ -82,7 +104,6 @@ void NetworkManager::handlerNetworkReply(QNetworkReply *reply) {
         // Используем словарь для сопоставления сообщений с действиями
         QMap<QString, std::function<void()>> messageHandlers = {
             {"auth ok", [&]() { emit authenticationSuccess(serviceInfo["token"].toString());
-             qDebug() << "auth ok handler";
              qDebug() << "token:" << serviceInfo["token"].toString();}},
             {"validate token", [&]() {
                  bool success = jsonObject["success"].toBool();
@@ -92,6 +113,8 @@ void NetworkManager::handlerNetworkReply(QNetworkReply *reply) {
                  }
              }},
             {"unknown message", [&]() { emit unknownMessageReceived(message); }},
+            {"state set", [&]() { qDebug() << "state set"; }},
+            {"the token is not valid", [&]() {authenticate();}},
             {"boot data", [&]() { emit systemStateReceived(jsonObject["devices_info"].toObject()); }},
             {"system state", [&]() { emit updateStateReceived(jsonObject["devices_info"].toObject()); }}
         };
@@ -100,8 +123,7 @@ void NetworkManager::handlerNetworkReply(QNetworkReply *reply) {
         if (messageHandlers.contains(message)) {
             messageHandlers[message]();
         } else {
-            qDebug() << "benebebe";
-            emit requestFinished(jsonObject);
+            emit requestFinished(message);
         }
     } else {
         emit connectionStatusChanged(false);  // Ошибка сети или неправильный ответ

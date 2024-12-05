@@ -19,7 +19,7 @@ public:
 
 signals:
     void pollingServerState(bool &state);
-    void networkModeChanged(bool &mode);
+    void networkModeChanged();
 
 private:
     Ui::SettingsWindow *ui;

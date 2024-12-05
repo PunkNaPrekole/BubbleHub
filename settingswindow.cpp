@@ -42,7 +42,8 @@ void SettingsWindow::saveSettings() {
         emit pollingServerState(pollingState);
     }
     if (networkMode != networkModeNow){
-        emit networkModeChanged(networkMode);
+        settingsManager->setSetting("server/autoSearch", networkMode);
+        emit networkModeChanged();
     }
 
     settingsManager->setSetting("server/serverAddress", serverAddress);

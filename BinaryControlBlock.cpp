@@ -2,7 +2,7 @@
 #include "BubbleScriptsManager.h"
 
 
-BinaryControlBlock::BinaryControlBlock(const QString &deviceName, int &deviceId, QWidget *parent)
+BinaryControlBlock::BinaryControlBlock(const QString &deviceName, int deviceId, QWidget *parent)
     : DeviceControlBlock()
 {
     deviceLabel = new QLabel(deviceName, this);
@@ -40,6 +40,9 @@ void BinaryControlBlock::onStateSwitchToggled(bool checked)
 void BinaryControlBlock::onManageScenarioClicked()
 {
     BubbleScriptsManager scriptsManager(deviceLabel->text(), this);
+    if (scriptsManager.exec() == QDialog::Accepted) {
+        qDebug() << "Scenario successfully managed!";
+    }
 }
 
 void BinaryControlBlock::onUseScenarioSwitchToggled(bool checked)
@@ -47,7 +50,7 @@ void BinaryControlBlock::onUseScenarioSwitchToggled(bool checked)
     // TODO: Реализовать логику применения сценария
 }
 
-void BinaryControlBlock::updateSliderForRole(const QString &name, bool value)
+void BinaryControlBlock::updateButtonForRole(const QString &name, bool value)
 {
     stateSwitch->setChecked(value);
 }

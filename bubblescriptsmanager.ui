@@ -72,6 +72,19 @@ QCheckBox::indicator:checked {
 
 </string>
   </property>
+  <widget class="QLabel" name="label">
+   <property name="geometry">
+    <rect>
+     <x>80</x>
+     <y>100</y>
+     <width>181</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>В процессе разработки</string>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections/>
