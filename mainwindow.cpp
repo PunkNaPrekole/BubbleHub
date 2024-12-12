@@ -13,8 +13,8 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
     , logger(new Logger(QDir::currentPath() + "/event_log.txt"))  // инициализируем логгер и \/
-    , networkManager(new NetworkManager(this, &settingsManager, logger))
-    , deviceControlFactory(new DeviceControlFactory(this))   //                    нетворк менеджер
+    , networkManager(new NetworkManager(this, &settingsManager, logger)) //         нетворк менеджер
+    , deviceControlFactory(new DeviceControlFactory(this))
     , serviceDiscovery(new ServiceDiscovery(this))
     , settingsManager("PrekolTech", "BubbleHub")
 {
@@ -24,9 +24,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(timer, &QTimer::timeout, this, [this]() { networkManager->sendRequest("get_system_state"); });
 
     bool checkBoxState = settingsManager.getSetting("system/polling", false).toBool();
-
-    searchServer();
-    qDebug() << "Settings file path:" << settingsManager.getSettingsFilePath();
+    networkManager->sendRequest("validate_token");
     if (checkBoxState) {
         timer->start(2000); // Запускаем таймер
     } else {
@@ -69,10 +67,10 @@ void MainWindow::updateTimerState(bool checked) {
 }
 
 void MainWindow::updateSystemState(const QJsonObject &state){
-    QString brokerState = state.value("broker state").toString();
-    QString dbState = state.value("db state").toString();
-    QString devices = state.value("devices").toString();
-    QString none = state.value("none").toString();
+    QString brokerState = state.value("mqtt broker").toBool() ? "active" : "inactive";
+    QString dbState = state.value("database").toString();
+    QString devices = QString("count devices: %1").arg(state.value("devices").toInt());
+    QString none = state.value("option").toString();
 
     ui->mqttBrokerStateLabel->setText(brokerState);
     ui->dbStateLabel->setText(dbState);
@@ -83,6 +81,12 @@ void MainWindow::updateSystemState(const QJsonObject &state){
     ui->dbStateLabel->setAlignment(Qt::AlignCenter);
     ui->devicesCountLabel->setAlignment(Qt::AlignCenter);
     ui->noneLabel->setAlignment(Qt::AlignCenter);
+
+    if (dbState == "local_db") {
+        ui->dbRestartBtn->setEnabled(false);
+    } else {
+        ui->dbRestartBtn->setEnabled(true);
+    }
 }
 
 void MainWindow::openSettings() {
@@ -116,6 +120,16 @@ void MainWindow::onServerFound(const QString &addr, int port, const QString &mes
 
 }
 
+void MainWindow::getSystemState(){
+    QJsonObject sensorsObject;
+    for (auto it = lastEntries.begin(); it != lastEntries.end(); ++it) {
+        sensorsObject[QString::number(it.key())] = it.value();
+    }
+    QJsonObject result;
+    result["sensors"] = sensorsObject;
+    networkManager->sendRequest("get_system_state", result);
+}
+
 void MainWindow::searchServer(){
     if (!connected){
         bool isMDNSDiscoveryEnabled = settingsManager.getSetting("service/mdnsDiscovery", true).toBool();
@@ -131,23 +145,32 @@ void MainWindow::searchServer(){
 }
 
 void MainWindow::unknownMessageHandler(const QString &message){
-    QMessageBox::information(this, "The core was unable to process the message ¯\_(ツ)_/¯", "The core reports that it has received an unknown message from the client, most likely your version of BubbleCore is outdated");
+    QMessageBox::information(this, "The core was unable to process the message ¯|_(ツ)_/¯", "The core reports that it has received an unknown message from the client, most likely your version of BubbleCore is outdated");
 }
 
-void MainWindow::updateConnectionStatus(bool success) {
+void MainWindow::updateConnectionStatus(bool success, const QString &msg) {
     // функция которая красит надпись(коннектед ор нот коннектед)
     if (success) {
         ui->stateLabel->setText("Connected");
         ui->stateLabel->setStyleSheet("color: green;");
+        connected = true;
     } else {
-        ui->stateLabel->setText("auth failed");
-        ui->stateLabel->setStyleSheet("color: red;");
-        QMessageBox::information(this, "Error connecting to BubbleCore (>_<)", "Failed to connect to BubbleCore, please enter other data to connect, or activate the core auto-search setting!");
+        if (msg == "auth"){
+            ui->stateLabel->setText("Auth failed!");
+            ui->stateLabel->setStyleSheet("color: red;");
+            QMessageBox::information(this, "Authentication error! (>_<)", "Check the correctness of the login and password, if the error persists, contact the system administrator");
+        }
+        else if(msg == "connection"){
+            ui->stateLabel->setText("Connection error!");
+            ui->stateLabel->setStyleSheet("color: red;");
+            QMessageBox::information(this, "Error connecting to BubbleCore (>_<)", "Failed to connect to BubbleCore, please enter other data to connect, or activate the core auto-search setting!");
+        }
     }
 }
 
 void MainWindow::handlerAuthSuccess(const QString &token) {
     // хэндлер вызываемый при успешной аутентификации
+    connected = true;
     ui->stateLabel->setText("Connected");
     ui->stateLabel->setStyleSheet("color: green;");
     logger->logEvent("Successfully authenticated. Token: " + token);
@@ -161,9 +184,11 @@ void MainWindow::handlerServerResponse(const QString &response) {
     qDebug() << "Server response:" << response;
 }
 
-void MainWindow::processReceivedData(const QJsonObject &devicesInfo)
-{   qDebug() << "received data" << devicesInfo;
-
+void MainWindow::processReceivedData(const QJsonObject &state)
+{   qDebug() << "received data" << state;
+    QJsonObject systate = state["system_info"].toObject();
+    updateSystemState(systate);
+    QJsonObject devicesInfo = state["devices_info"].toObject();
     if (devicesInfo.contains("executive")) {
         qDebug() << "contains exec!";
         QJsonArray executiveArray = devicesInfo["executive"].toArray();
@@ -184,7 +209,10 @@ void MainWindow::processReceivedData(const QJsonObject &devicesInfo)
                     deviceBlocks[deviceId] = controlBlock;
                     connect(controlBlock, &DeviceControlBlock::controlButtonPressed, this, [this, controlBlock](const QString &deviceName, QVariant state) {
                         qDebug() << "Device:" << deviceName << "State:" << state;
-                        networkManager->sendControlSignal(deviceName, state);
+                        QJsonObject controlData;
+                        controlData["device_name"] = deviceName;
+                        controlData["state"] = QJsonValue::fromVariant(state);
+                        networkManager->sendRequest("control_signal", controlData);
                     });
                     qDebug() << "added new control block!!!";
                 }
@@ -223,6 +251,7 @@ void MainWindow::processReceivedData(const QJsonObject &devicesInfo)
                     readingsArray.append(readingItem);
                 }
                 qDebug() << "manageChart for: " << sensorId;
+                lastEntries[sensorId] = lastEntry;
                 manageCharts(sensorId, type, lastEntry, chartName, readingsArray);
             } else if (type == "state") {
                 // TODO

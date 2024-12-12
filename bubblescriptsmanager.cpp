@@ -8,7 +8,7 @@ BubbleScriptsManager::BubbleScriptsManager(const QString &deviceName, QWidget *p
     this->resize(400, 300);
 
     // Создаём текстовое сообщение
-    QLabel *label = new QLabel("Настройка сценариев для устройства: " + deviceName, this);
+    QLabel *label = new QLabel("Configuring scripts for the device: " + deviceName, this);
     label->setAlignment(Qt::AlignCenter);
 
     // Кнопка "Ок"

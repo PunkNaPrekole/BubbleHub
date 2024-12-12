@@ -43,6 +43,10 @@ QPushButton:pressed {
     background-color: #e471c3;     /* Красный цвет при нажатии */
 	border: 2px solid #191a26;}
 
+QPushButton:disabled {
+    background-color: gray;     /* Красный цвет при нажатии */
+	border: 2px solid darkgray;}
+
 /* Настройки для слайдеров */
 QSlider::groove:horizontal {
     background: #eeeeee;           /* трек */
@@ -296,7 +300,7 @@ QPushButton:pressed {
 }</string>
                 </property>
                 <property name="text">
-                 <string>restart</string>
+                 <string>reboot</string>
                 </property>
                </widget>
               </item>
@@ -321,7 +325,7 @@ QPushButton:pressed {
 }</string>
                 </property>
                 <property name="text">
-                 <string>restart</string>
+                 <string>reboot</string>
                 </property>
                </widget>
               </item>
@@ -360,7 +364,7 @@ QPushButton:pressed {
 }</string>
                 </property>
                 <property name="text">
-                 <string>restart all</string>
+                 <string>reboot all</string>
                 </property>
                </widget>
               </item>
@@ -385,7 +389,7 @@ QPushButton:pressed {
 }</string>
                 </property>
                 <property name="text">
-                 <string>restart</string>
+                 <string>option</string>
                 </property>
                </widget>
               </item>

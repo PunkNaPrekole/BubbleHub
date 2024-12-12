@@ -33,7 +33,7 @@ private slots:
     void openSettings();  // Открытие окна настроек
     void handlerAuthSuccess(const QString &token);  // Обработка успешной аутентификации
     void handlerServerResponse(const QString &response);  // Обработка ответа от сервера
-    void updateConnectionStatus(bool success);
+    void updateConnectionStatus(bool success, const QString &msg);
     void manageCharts(int sensorId, const QString &type, int lastEntry, const QString &chartName, const QJsonArray &readingsArray);
     void removeStaleCharts();
     void updateTimerState(bool checked);
@@ -43,6 +43,7 @@ private slots:
     void searchServer();
     void processReceivedData(const QJsonObject &data);
     void unknownMessageHandler(const QString &message);
+    void getSystemState();
 
 signals:
     void serverResponseReceived(const QJsonObject &response);
@@ -65,6 +66,8 @@ private:
     int row = 0;
     int col = 0;
     const int maxColumns = 2;
+    QMap<int, int> lastEntries; // мапа для хранения sensor_id:last_entry
+
 };
 
 #endif // MAINWINDOW_H

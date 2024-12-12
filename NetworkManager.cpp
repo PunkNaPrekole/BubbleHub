@@ -32,7 +32,7 @@ void NetworkManager::authenticate() {
 
 }
 
-void NetworkManager::sendRequest(const QString &message) {
+void NetworkManager::sendRequest(const QString &message, const QJsonObject &additionalData) {
     QString serverAddress = settingsManager->getSetting("server/serverAddress", "192.1680.107").toString();
     int serverPort = settingsManager->getSetting("server/serverPort", 12345).toInt();
     QString token = settingsManager->getSetting("server/token", "").toString();
@@ -42,30 +42,9 @@ void NetworkManager::sendRequest(const QString &message) {
     json["token"] = token;
     json["message"] = message;
 
-    QJsonDocument doc(json);
-    QByteArray data = doc.toJson();
-    QString url = QString("http://%1:%2/settings").arg(serverAddress).arg(serverPort);
-    QNetworkRequest request((QUrl(url)));
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-
-    QNetworkReply *reply = manager->post(request, data);
-    connect(reply, &QNetworkReply::finished, this, [this, reply]() { handlerNetworkReply(reply); });
-     qDebug() << "Request send: " << message;
-     qDebug() << "request to:" << serverAddress;
-
-}
-
-void NetworkManager::sendControlSignal(const QString &dev_name, QVariant state) {
-    QString serverAddress = settingsManager->getSetting("server/serverAddress", "192.1680.107").toString();
-    int serverPort = settingsManager->getSetting("server/serverPort", 12345).toInt();
-    QString token = settingsManager->getSetting("server/token", "").toString();
-
-    QJsonObject json;
-    json["type"] = "desktopClient";
-    json["token"] = token;
-    json["message"] = "control_signal";
-    json["device_name"] = dev_name;
-    json["state"] = QJsonValue::fromVariant(state);
+    for (auto it = additionalData.begin(); it != additionalData.end(); ++it) {
+        json[it.key()] = it.value();
+    }
 
     QJsonDocument doc(json);
     QByteArray data = doc.toJson();
@@ -75,7 +54,8 @@ void NetworkManager::sendControlSignal(const QString &dev_name, QVariant state) 
 
     QNetworkReply *reply = manager->post(request, data);
     connect(reply, &QNetworkReply::finished, this, [this, reply]() { handlerNetworkReply(reply); });
-
+    qDebug() << "Request send: " << message;
+    qDebug() << "request to:" << serverAddress;
 
 }
 
@@ -103,20 +83,28 @@ void NetworkManager::handlerNetworkReply(QNetworkReply *reply) {
         qDebug() << "message:" << message;
         // Используем словарь для сопоставления сообщений с действиями
         QMap<QString, std::function<void()>> messageHandlers = {
-            {"auth ok", [&]() { emit authenticationSuccess(serviceInfo["token"].toString());
-             qDebug() << "token:" << serviceInfo["token"].toString();}},
+            {"authentication", [&]() {
+                qDebug() << "message:" << jsonObject["success"];
+                bool success = serviceInfo["success"].toBool();
+                if (success){
+                    emit authenticationSuccess(serviceInfo["token"].toString());
+                } else {
+                    emit connectionStatusChanged(false, "auth");
+                }
+            }},
             {"validate token", [&]() {
-                 bool success = jsonObject["success"].toBool();
-                 emit connectionStatusChanged(success);
+                 bool success = serviceInfo["success"].toBool();
                  if (!success) {
                      authenticate();  // Вызываем authenticate, если success == false
+                 } else {
+                     emit connectionStatusChanged(success, "");
                  }
              }},
             {"unknown message", [&]() { emit unknownMessageReceived(message); }},
             {"state set", [&]() { qDebug() << "state set"; }},
             {"the token is not valid", [&]() {authenticate();}},
-            {"boot data", [&]() { emit systemStateReceived(jsonObject["devices_info"].toObject()); }},
-            {"system state", [&]() { emit updateStateReceived(jsonObject["devices_info"].toObject()); }}
+            {"boot data", [&]() { emit systemStateReceived(jsonObject); }},
+            {"system state", [&]() { emit systemStateReceived(jsonObject); }}
         };
 
         // Выполняем соответствующий обработчик
@@ -126,7 +114,7 @@ void NetworkManager::handlerNetworkReply(QNetworkReply *reply) {
             emit requestFinished(message);
         }
     } else {
-        emit connectionStatusChanged(false);  // Ошибка сети или неправильный ответ
+        emit connectionStatusChanged(false, "connection");  // Ошибка сети или неправильный ответ
     }
 
     reply->deleteLater();

@@ -16,13 +16,12 @@ class NetworkManager : public QObject {
 public:
     explicit NetworkManager(QObject *parent, SettingsManager *settings, Logger *logger);
     void authenticate();
-    void sendRequest(const QString &message);
-    void sendControlSignal(const QString &dev_name, QVariant state);
+    void sendRequest(const QString &message, const QJsonObject &additionalData = QJsonObject());
 
 signals:
     void authenticationSuccess(const QString &token);
     void requestFinished(const QString &message);
-    void connectionStatusChanged(bool success);
+    void connectionStatusChanged(bool success, const QString &msg);
     void systemStateReceived(const QJsonObject &state);
     void updateStateReceived(const QJsonObject &state);
     void signatureInvalid();

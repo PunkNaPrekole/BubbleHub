@@ -82,7 +82,7 @@ QCheckBox::indicator:checked {
     </rect>
    </property>
    <property name="text">
-    <string>В процессе разработки</string>
+    <string>In the process of development</string>
    </property>
   </widget>
  </widget>
